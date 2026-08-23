@@ -1,0 +1,108 @@
+name: Publish macOS prerelease
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing vMAJOR.MINOR.PATCH tag to publish
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+
+jobs:
+  release:
+    runs-on: macos-26
+    permissions:
+      contents: write
+    concurrency:
+      group: release-${{ inputs.tag || github.ref_name }}
+      cancel-in-progress: false
+    steps:
+      - name: Check out release tooling
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve release tag
+        id: release
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ]]; then
+            tag="$INPUT_TAG"
+          else
+            tag="$GITHUB_REF_NAME"
+          fi
+          if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid release tag: $tag" >&2
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Refuse to replace an existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "A GitHub release already exists for $RELEASE_TAG" >&2
+            exit 1
+          fi
+
+      - name: Build and package tagged source
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          ./scripts/package-release-mac.sh "$RELEASE_TAG" "$RUNNER_TEMP/release"
+
+      - name: Prepare release notes
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          notes="$RUNNER_TEMP/release-notes.md"
+          {
+            echo '> [!WARNING]'
+            echo '> This is an unsigned experimental build. macOS cannot verify its publisher. Download it only from this official OpenYap release.'
+            echo
+            echo 'Requires macOS 26 and an Apple silicon Mac.'
+            echo
+            echo 'Move OpenYap.app to `/Applications`. If Gatekeeper blocks the first launch, Control-click the app and choose Open, or use System Settings > Privacy & Security > Open Anyway.'
+            echo
+            echo "## Changes in $RELEASE_VERSION"
+            awk -v version="$RELEASE_VERSION" '
+              $0 ~ "^## " version " -" { in_release = 1; next }
+              in_release && /^## / { exit }
+              in_release { print }
+            ' <(git show "$RELEASE_TAG:CHANGELOG.md")
+          } > "$notes"
+
+      - name: Publish GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+          gh release create "$RELEASE_TAG" \
+            "$RUNNER_TEMP/release/OpenYap-$RELEASE_VERSION-macOS-arm64.zip" \
+            "$RUNNER_TEMP/release/OpenYap-$RELEASE_VERSION-macOS-arm64.zip.sha256" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --prerelease \
+            --title "OpenYap $RELEASE_VERSION" \
+            --notes-file "$RUNNER_TEMP/release-notes.md"

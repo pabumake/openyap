@@ -1,0 +1,55 @@
+name: macOS CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+
+jobs:
+  test-and-archive:
+    runs-on: macos-26
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Run unit tests
+        run: |
+          set -euo pipefail
+          xcodebuild test -quiet \
+            -project OpenYap.xcodeproj \
+            -scheme OpenYap \
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath "$RUNNER_TEMP/OpenYapTestDerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=NO
+
+      - name: Check release archive
+        run: |
+          set -euo pipefail
+          xcodebuild archive -quiet \
+            -project OpenYap.xcodeproj \
+            -scheme OpenYap \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -archivePath "$RUNNER_TEMP/OpenYap.xcarchive" \
+            -derivedDataPath "$RUNNER_TEMP/OpenYapArchiveDerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=NO
+
+          application="$RUNNER_TEMP/OpenYap.xcarchive/Products/Applications/OpenYap.app"
+          test "$(lipo -archs "$application/Contents/MacOS/OpenYap")" = arm64
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$application/Contents/Info.plist")" = dev.pabu.openyap
+          test -f "$application/Contents/Resources/CHANGELOG.md"
+          test -f "$application/Contents/Resources/AppIcon.icns"

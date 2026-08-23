@@ -31,6 +31,28 @@ Or build, install, sign, and launch the app in one command:
 ./scripts/build-and-install-mac.sh
 ```
 
+## Download the experimental binary
+
+The `v0.1.0` GitHub prerelease provides `OpenYap-0.1.0-macOS-arm64.zip` and a SHA-256 checksum. This build requires macOS 26 on Apple silicon.
+
+The prerelease is ad hoc signed, not Developer ID signed or notarized. macOS cannot verify its publisher. Download it only from the official [OpenYap releases](https://github.com/pabumake/openyap/releases), verify the checksum, move `OpenYap.app` to `/Applications`, then Control-click it and choose Open. If macOS still blocks it, use System Settings > Privacy & Security > Open Anyway. Apple documents this flow in [Open a Mac app from an unknown developer](https://support.apple.com/guide/mac-help/open-a-mac-app-from-an-unidentified-developer-mh40616/mac).
+
+To verify the downloaded ZIP and checksum in the same directory:
+
+```sh
+shasum -a 256 -c OpenYap-0.1.0-macOS-arm64.zip.sha256
+```
+
+## Build a tagged release locally
+
+The release packager exports the exact tagged source, runs the tests, creates an unsigned arm64 Release archive, seals the bundle with an ad hoc signature, and writes a ZIP plus checksum under `.build/releases/`:
+
+```sh
+./scripts/package-release-mac.sh v0.1.0
+```
+
+Pass a second argument to choose another output directory. The script refuses to replace an existing release asset.
+
 The development installer resets OpenYap's Microphone, Input Monitoring, and Accessibility grants so a newly signed build follows the permission flow again. Set `OPENYAP_KEEP_PERMISSIONS=1` when you need to rebuild without resetting them.
 
 Choose the `OpenYap` scheme and click Run. Xcode may ask you to select a signing team. Install the successful build at `/Applications/OpenYap.app` before granting permissions. This keeps the app path stable across rebuilds.
