@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenYap dictation lifecycle prototype</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0d12;
+      --panel: rgba(24, 27, 36, 0.86);
+      --panel-strong: #191d27;
+      --line: rgba(255, 255, 255, 0.09);
+      --text: #f5f7fb;
+      --muted: #979eae;
+      --accent: #ff9d52;
+      --accent-soft: rgba(255, 157, 82, 0.14);
+      --blue: #73b6ff;
+      --blue-soft: rgba(115, 182, 255, 0.13);
+      --green: #5cd69b;
+      --green-soft: rgba(92, 214, 155, 0.13);
+      --red: #ff7575;
+      --red-soft: rgba(255, 117, 117, 0.13);
+      --yellow: #f4cd64;
+      --yellow-soft: rgba(244, 205, 100, 0.13);
+      --radius: 18px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(255, 157, 82, 0.15), transparent 34rem),
+        radial-gradient(circle at 100% 30%, rgba(91, 132, 255, 0.11), transparent 34rem),
+        var(--bg);
+    }
+
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+
+    .page {
+      width: min(1480px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .masthead {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: start;
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 14px var(--accent);
+    }
+
+    h1 {
+      max-width: 900px;
+      margin: 0;
+      font-size: clamp(28px, 4vw, 52px);
+      line-height: 1.04;
+      letter-spacing: -0.045em;
+    }
+
+    .lede {
+      max-width: 830px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    .open-hint {
+      min-width: 230px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.035);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .open-hint code { color: var(--text); }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: 0 22px 70px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(22px);
+    }
+
+    .guided {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+      align-items: center;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .guided h2, .panel-title {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: -0.01em;
+    }
+
+    .guided p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .scenario-buttons, .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button {
+      min-height: 36px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.055);
+      cursor: pointer;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    button:active { transform: translateY(0); }
+    button.primary { border-color: rgba(255, 157, 82, 0.38); background: var(--accent-soft); color: #ffc89e; }
+    button.safe { border-color: rgba(92, 214, 155, 0.3); background: var(--green-soft); color: #a9f0cd; }
+    button.warn { border-color: rgba(244, 205, 100, 0.3); background: var(--yellow-soft); color: #ffe6a0; }
+    button.danger { border-color: rgba(255, 117, 117, 0.3); background: var(--red-soft); color: #ffb0b0; }
+    button.active { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+    .next-step {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+
+    .next-step span {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    .state-strip {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+
+    .state-node {
+      flex: 0 0 auto;
+      padding: 8px 11px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      color: #777e8d;
+      background: rgba(255, 255, 255, 0.025);
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .state-node.current {
+      color: #ffd3b2;
+      border-color: rgba(255, 157, 82, 0.4);
+      background: var(--accent-soft);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr) 360px;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .section { padding: 18px; }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .count {
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.05);
+      font-size: 11px;
+    }
+
+    .control-group {
+      padding-top: 15px;
+      margin-top: 15px;
+      border-top: 1px solid var(--line);
+    }
+
+    .control-group:first-of-type { padding-top: 0; margin-top: 0; border-top: 0; }
+
+    .control-group h3 {
+      margin: 0 0 9px;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      outline: none;
+      color: var(--text);
+      background: rgba(0, 0, 0, 0.18);
+    }
+
+    input:focus, select:focus { border-color: rgba(115, 182, 255, 0.52); }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 13px;
+      border-radius: 13px;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .metric small { display: block; color: var(--muted); margin-bottom: 5px; }
+    .metric strong { display: block; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
+
+    .session-list { display: grid; gap: 10px; }
+
+    .empty {
+      padding: 42px 22px;
+      border: 1px dashed var(--line);
+      border-radius: 14px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .session-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.025);
+      cursor: pointer;
+    }
+
+    .session-card:hover { border-color: rgba(255, 255, 255, 0.18); }
+    .session-card.selected { border-color: rgba(115, 182, 255, 0.48); box-shadow: inset 0 0 0 1px rgba(115, 182, 255, 0.12); }
+    .session-card.active-session { background: var(--accent-soft); }
+
+    .session-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .session-id { font-weight: 750; }
+
+    .badge {
+      display: inline-flex;
+      padding: 4px 8px;
+      border-radius: 999px;
+      color: var(--blue);
+      background: var(--blue-soft);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge.good { color: var(--green); background: var(--green-soft); }
+    .badge.bad { color: var(--red); background: var(--red-soft); }
+    .badge.wait { color: var(--yellow); background: var(--yellow-soft); }
+
+    .roles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .role {
+      padding: 4px 7px;
+      border-radius: 7px;
+      color: var(--muted);
+      background: rgba(0, 0, 0, 0.18);
+      font-size: 11px;
+    }
+
+    .text-block {
+      padding-top: 9px;
+      margin-top: 9px;
+      border-top: 1px solid var(--line);
+    }
+
+    .text-block small { color: var(--muted); }
+    .text-block p { margin: 5px 0 0; font-size: 13px; line-height: 1.45; white-space: pre-wrap; }
+    .issue { color: #ffb0b0; }
+
+    .event-list {
+      display: grid;
+      gap: 8px;
+      max-height: 670px;
+      overflow: auto;
+    }
+
+    .event {
+      padding: 10px 11px;
+      border-left: 3px solid var(--green);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .event.rejected { border-left-color: var(--red); background: var(--red-soft); }
+    .event.ignored { border-left-color: var(--yellow); }
+    .event strong { display: block; font-size: 12px; }
+    .event span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.4; }
+
+    details { margin-top: 16px; }
+    summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+
+    pre {
+      max-height: 470px;
+      overflow: auto;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      color: #c8d2e3;
+      background: #080a0e;
+      font: 12px/1.5 "SFMono-Regular", Consolas, monospace;
+      white-space: pre-wrap;
+    }
+
+    .judge {
+      margin-top: 16px;
+      padding: 17px 18px;
+      border: 1px solid rgba(255, 157, 82, 0.25);
+      border-radius: var(--radius);
+      background: var(--accent-soft);
+      color: #f4c7a5;
+      line-height: 1.5;
+    }
+
+    .judge strong { color: #ffe4cf; }
+
+    @media (max-width: 1120px) {
+      .workspace { grid-template-columns: 300px minmax(0, 1fr); }
+      .events-panel { grid-column: 1 / -1; }
+      .event-list { max-height: 300px; }
+    }
+
+    @media (max-width: 760px) {
+      .page { width: min(100% - 20px, 1480px); padding-top: 18px; }
+      .masthead, .guided, .workspace { grid-template-columns: 1fr; }
+      .open-hint { min-width: 0; }
+      .next-step { justify-content: flex-start; flex-wrap: wrap; }
+      .next-step span { text-align: left; }
+      .summary { grid-template-columns: 1fr; }
+      .events-panel { grid-column: auto; }
+    }
+  </style>
+</head>
+<body data-prototype="throwaway">
+  <main class="page">
+    <header class="masthead">
+      <div>
+        <div class="eyebrow">Throwaway state prototype</div>
+        <h1>Can capture and delivery split without confusing the user?</h1>
+        <p class="lede">This simulator tests OpenYap's dictation lifecycle. The hard case is iOS, where the containing app captures speech and the keyboard delivers text. Run the guided scenarios, then try invalid actions in free play.</p>
+      </div>
+      <div class="open-hint">Open this file directly in Safari. No server or install is needed.<br><code>docs/prototypes/dictation-lifecycle.html</code></div>
+    </header>
+
+    <section class="panel guided">
+      <div>
+        <h2 id="scenario-title">Guided scenarios</h2>
+        <p id="scenario-description">Choose a scenario. Use Next step to inspect every transition.</p>
+        <div class="next-step">
+          <span id="scenario-next">No scenario selected.</span>
+          <button class="primary" id="next-step">Next step</button>
+        </div>
+      </div>
+      <div class="scenario-buttons">
+        <button data-scenario="happy">Normal Mac path</button>
+        <button data-scenario="handoff">iPhone target disappears</button>
+        <button data-scenario="invalid">Invalid concurrent start</button>
+        <button id="reset">Reset</button>
+      </div>
+    </section>
+
+    <nav class="panel state-strip" id="state-strip" aria-label="Dictation states"></nav>
+
+    <div class="workspace">
+      <aside class="panel section controls-panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Free play</h2>
+          <span class="count">All controls stay clickable</span>
+        </div>
+
+        <div class="control-group">
+          <h3>Activation</h3>
+          <label>Activation source
+            <select id="source">
+              <option>Mac Fn+Space</option>
+              <option>iOS keyboard</option>
+              <option>Action Button</option>
+              <option>Control Center</option>
+              <option>OpenYap app</option>
+            </select>
+          </label>
+          <div class="button-row">
+            <button class="primary" data-action="activate">New activation</button>
+            <button data-action="duplicate">Duplicate activation</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Capture and speech</h3>
+          <label>Spoken segment
+            <input id="raw-text" value="um meet Tuesday, actually Wednesday at three">
+          </label>
+          <div class="button-row">
+            <button data-action="prepare">Begin preparation</button>
+            <button data-action="capture-ready">Start capture</button>
+            <button data-action="volatile">Add volatile segment</button>
+            <button data-action="final-segment">Commit final segment</button>
+            <button class="warn" data-action="stop">Stop</button>
+            <button class="danger" data-action="interrupt">Interrupt capture</button>
+            <button data-action="finalize">Finish finalization</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Prepare text</h3>
+          <label>Delivery text
+            <input id="delivery-text" value="Meet Wednesday at three.">
+          </label>
+          <div class="button-row">
+            <button class="safe" data-action="format-success">Prepare delivery text</button>
+            <button class="warn" data-action="format-fallback">Formatting unavailable</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Delivery</h3>
+          <label>Insertion target
+            <select id="target">
+              <option>TextEdit document</option>
+              <option>Notes text field</option>
+              <option>Messages composer</option>
+              <option>Mail composer</option>
+              <option>Secure field</option>
+            </select>
+          </label>
+          <div class="button-row">
+            <button class="primary" data-action="try-delivery">Try delivery</button>
+            <button class="safe" data-action="delivery-accepted">Target accepted</button>
+            <button class="danger" data-action="delivery-rejected">Target rejected</button>
+            <button class="danger" data-action="discard">Discard waiting text</button>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Session</h3>
+          <div class="button-row">
+            <button class="danger" data-action="cancel">Cancel active session</button>
+          </div>
+        </div>
+      </aside>
+
+      <section class="panel section sessions-panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Sessions</h2>
+          <span class="count" id="session-count">0 sessions</span>
+        </div>
+        <div class="summary">
+          <div class="metric"><small>Active session</small><strong id="active-session">None</strong></div>
+          <div class="metric"><small>Selected session</small><strong id="selected-session">None</strong></div>
+          <div class="metric"><small>Awaiting delivery</small><strong id="waiting-count">0</strong></div>
+        </div>
+        <div class="session-list" id="session-list"></div>
+        <details>
+          <summary>Show full reducer state</summary>
+          <pre id="full-state"></pre>
+        </details>
+      </section>
+
+      <aside class="panel section events-panel">
+        <div class="panel-head">
+          <h2 class="panel-title">Transition log</h2>
+          <span class="count" id="event-count">0 actions</span>
+        </div>
+        <div class="event-list" id="event-list"></div>
+      </aside>
+    </div>
+
+    <section class="judge">
+      <strong>What to judge:</strong> Can you tell when OpenYap is listening, processing, waiting for a target, and actually delivered? After the iPhone target disappears, does the recovery behavior feel safe? Does allowing a new session while an older one awaits delivery create confusion?
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const ACTIVE_STATES = new Set(["requested", "preparing", "capturing", "finalizing", "preparingText", "delivering"]);
+    const STATE_ORDER = ["requested", "preparing", "capturing", "finalizing", "preparingText", "awaitingDelivery", "delivering", "delivered"];
+    const STATE_LABELS = {
+      requested: "Requested",
+      preparing: "Preparing",
+      capturing: "Capturing",
+      finalizing: "Finalizing",
+      preparingText: "Preparing text",
+      awaitingDelivery: "Awaiting delivery",
+      delivering: "Delivering",
+      delivered: "Delivered",
+      cancelled: "Cancelled",
+      discarded: "Discarded",
+      failed: "Failed"
+    };
+
+    function initialState() {
+      return {
+        activeSessionID: null,
+        selectedSessionID: null,
+        nextSessionNumber: 1,
+        sessions: [],
+        events: [],
+        sequence: 0
+      };
+    }
+
+    function copy(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function sessionByID(state, id) {
+      return state.sessions.find((session) => session.id === id) || null;
+    }
+
+    function activeSession(state) {
+      return sessionByID(state, state.activeSessionID);
+    }
+
+    function rawTranscript(session) {
+      return session.finalSegments.join(" ").trim();
+    }
+
+    function appendEvent(state, action, result, message) {
+      state.sequence += 1;
+      state.events.push({
+        number: state.sequence,
+        action: action.type,
+        result,
+        message
+      });
+    }
+
+    function reject(state, action, message) {
+      appendEvent(state, action, "rejected", message);
+      return state;
+    }
+
+    function reduce(previous, action) {
+      if (action.type === "RESET") return initialState();
+
+      const next = copy(previous);
+      let session = activeSession(next);
+
+      switch (action.type) {
+        case "ACTIVATE": {
+          if (session) {
+            if (action.existingSessionID === session.id) {
+              appendEvent(next, action, "ignored", `Duplicate activation returned ${session.id}.`);
+              return next;
+            }
+            return reject(next, action, `${session.id} is ${STATE_LABELS[session.state].toLowerCase()}. A second active session is not allowed.`);
+          }
+
+          const id = `S${next.nextSessionNumber}`;
+          next.nextSessionNumber += 1;
+          const created = {
+            id,
+            state: "requested",
+            activationSource: action.source,
+            captureHost: null,
+            deliveryAgent: null,
+            volatileText: "",
+            finalSegments: [],
+            deliveryText: "",
+            partial: false,
+            deliveryAttempts: 0,
+            insertionTarget: null,
+            lastIssue: null
+          };
+          next.sessions.push(created);
+          next.activeSessionID = id;
+          next.selectedSessionID = id;
+          appendEvent(next, action, "accepted", `${id} requested by ${action.source}.`);
+          return next;
+        }
+
+        case "BEGIN_PREPARATION":
+          if (!session || session.state !== "requested") return reject(next, action, "Preparation can begin only for a requested session.");
+          session.state = "preparing";
+          appendEvent(next, action, "accepted", `${session.id} is checking permissions and speech assets.`);
+          return next;
+
+        case "CAPTURE_READY":
+          if (!session || session.state !== "preparing") return reject(next, action, "Capture can begin only after session preparation.");
+          session.state = "capturing";
+          session.captureHost = action.captureHost;
+          appendEvent(next, action, "accepted", `${session.id} began capture in ${action.captureHost}.`);
+          return next;
+
+        case "VOLATILE_SEGMENT":
+          if (!session || session.state !== "capturing") return reject(next, action, "Volatile speech belongs only to a capturing session.");
+          session.volatileText = action.text;
+          appendEvent(next, action, "accepted", `${session.id} received provisional speech. It is not committed.`);
+          return next;
+
+        case "FINAL_SEGMENT":
+          if (!session || session.state !== "capturing") return reject(next, action, "A final segment belongs only to a capturing session.");
+          session.finalSegments.push(action.text);
+          session.volatileText = "";
+          appendEvent(next, action, "accepted", `${session.id} committed one final segment.`);
+          return next;
+
+        case "STOP":
+          if (!session) return reject(next, action, "There is no active session to stop.");
+          if (session.state === "requested" || session.state === "preparing") {
+            session.state = "cancelled";
+            next.activeSessionID = null;
+            appendEvent(next, action, "accepted", `${session.id} was cancelled because capture had not started.`);
+            return next;
+          }
+          if (session.state === "capturing") {
+            session.state = "finalizing";
+            session.volatileText = "";
+            appendEvent(next, action, "accepted", `${session.id} stopped capture and began finalization.`);
+            return next;
+          }
+          if (session.state === "finalizing") {
+            appendEvent(next, action, "ignored", `${session.id} is already finalizing.`);
+            return next;
+          }
+          return reject(next, action, `Stop is invalid while ${session.id} is ${STATE_LABELS[session.state].toLowerCase()}.`);
+
+        case "INTERRUPT":
+          if (!session || session.state !== "capturing") return reject(next, action, "Only active capture can be interrupted.");
+          session.volatileText = "";
+          session.lastIssue = "Audio capture was interrupted.";
+          if (session.finalSegments.length > 0) {
+            session.partial = true;
+            session.state = "preparingText";
+            appendEvent(next, action, "accepted", `${session.id} kept a partial raw transcript and moved to text preparation.`);
+          } else {
+            session.state = "failed";
+            next.activeSessionID = null;
+            appendEvent(next, action, "accepted", `${session.id} failed because the interruption left no usable text.`);
+          }
+          return next;
+
+        case "FINALIZE":
+          if (!session || session.state !== "finalizing") return reject(next, action, "Finalization can finish only after capture stops.");
+          if (session.finalSegments.length === 0) {
+            session.state = "failed";
+            session.lastIssue = "No final speech segment was available.";
+            next.activeSessionID = null;
+            appendEvent(next, action, "accepted", `${session.id} failed without usable text.`);
+          } else {
+            session.state = "preparingText";
+            appendEvent(next, action, "accepted", `${session.id} has a raw transcript and is preparing delivery text.`);
+          }
+          return next;
+
+        case "FORMAT_SUCCESS":
+          if (!session || session.state !== "preparingText") return reject(next, action, "Delivery text can be prepared only from a raw transcript.");
+          session.deliveryText = action.text || rawTranscript(session);
+          session.state = "awaitingDelivery";
+          session.lastIssue = null;
+          next.activeSessionID = null;
+          next.selectedSessionID = session.id;
+          appendEvent(next, action, "accepted", `${session.id} is awaiting delivery. It no longer blocks a new activation.`);
+          return next;
+
+        case "FORMAT_FALLBACK":
+          if (!session || session.state !== "preparingText") return reject(next, action, "Formatting fallback requires a raw transcript.");
+          session.deliveryText = rawTranscript(session);
+          session.state = "awaitingDelivery";
+          session.lastIssue = "Smart formatting was unavailable. Raw transcript preserved.";
+          next.activeSessionID = null;
+          next.selectedSessionID = session.id;
+          appendEvent(next, action, "accepted", `${session.id} fell back to its raw transcript and is awaiting delivery.`);
+          return next;
+
+        case "SELECT_SESSION":
+          if (!sessionByID(next, action.sessionID)) return reject(next, action, `Session ${action.sessionID} does not exist.`);
+          next.selectedSessionID = action.sessionID;
+          appendEvent(next, action, "accepted", `${action.sessionID} selected.`);
+          return next;
+
+        case "TRY_DELIVERY": {
+          if (session) return reject(next, action, `${session.id} is active. Delivery cannot start concurrently.`);
+          const targetSession = sessionByID(next, action.sessionID || next.selectedSessionID);
+          if (!targetSession || targetSession.state !== "awaitingDelivery") return reject(next, action, "Select a session that is awaiting delivery.");
+          targetSession.state = "delivering";
+          targetSession.deliveryAttempts += 1;
+          targetSession.insertionTarget = action.target;
+          targetSession.deliveryAgent = action.deliveryAgent;
+          targetSession.lastIssue = null;
+          next.activeSessionID = targetSession.id;
+          next.selectedSessionID = targetSession.id;
+          appendEvent(next, action, "accepted", `${targetSession.id} is attempting delivery to ${action.target}.`);
+          return next;
+        }
+
+        case "DELIVERY_ACCEPTED":
+          if (!session || session.state !== "delivering") return reject(next, action, "No delivery attempt is active.");
+          session.state = "delivered";
+          session.lastIssue = null;
+          next.activeSessionID = null;
+          appendEvent(next, action, "accepted", `${session.id} was accepted by ${session.insertionTarget}.`);
+          return next;
+
+        case "DELIVERY_REJECTED":
+          if (!session || session.state !== "delivering") return reject(next, action, "No delivery attempt is active.");
+          session.state = "awaitingDelivery";
+          session.lastIssue = action.reason;
+          next.activeSessionID = null;
+          next.selectedSessionID = session.id;
+          appendEvent(next, action, "accepted", `${session.id} remains awaiting delivery. Its text is safe.`);
+          return next;
+
+        case "CANCEL":
+          if (!session || !["requested", "preparing", "capturing", "finalizing", "preparingText"].includes(session.state)) {
+            return reject(next, action, "Only pre-delivery work can be cancelled.");
+          }
+          session.state = "cancelled";
+          session.volatileText = "";
+          session.finalSegments = [];
+          session.deliveryText = "";
+          next.activeSessionID = null;
+          appendEvent(next, action, "accepted", `${session.id} was cancelled and its speech was discarded.`);
+          return next;
+
+        case "DISCARD": {
+          const targetSession = sessionByID(next, action.sessionID || next.selectedSessionID);
+          if (!targetSession || targetSession.state !== "awaitingDelivery") return reject(next, action, "Select a session that is awaiting delivery before discarding it.");
+          targetSession.state = "discarded";
+          targetSession.volatileText = "";
+          targetSession.finalSegments = [];
+          targetSession.deliveryText = "";
+          targetSession.lastIssue = null;
+          appendEvent(next, action, "accepted", `${targetSession.id} was discarded.`);
+          return next;
+        }
+
+        default:
+          return reject(next, action, `Unknown action ${action.type}.`);
+      }
+    }
+
+    const scenarios = {
+      happy: {
+        title: "Normal Mac path",
+        description: "Capture, prepare, and deliver one dictation to TextEdit.",
+        steps: [
+          ["Activate from Fn+Space", { type: "ACTIVATE", source: "Mac Fn+Space" }],
+          ["Check permission and assets", { type: "BEGIN_PREPARATION" }],
+          ["Begin microphone capture", { type: "CAPTURE_READY", captureHost: "macOS app" }],
+          ["Show provisional speech", { type: "VOLATILE_SEGMENT", text: "um meet Tuesday" }],
+          ["Commit the speech segment", { type: "FINAL_SEGMENT", text: "um meet Tuesday, actually Wednesday at three" }],
+          ["Stop capture", { type: "STOP" }],
+          ["Finish transcription", { type: "FINALIZE" }],
+          ["Prepare clean delivery text", { type: "FORMAT_SUCCESS", text: "Meet Wednesday at three." }],
+          ["Try insertion into TextEdit", { type: "TRY_DELIVERY", target: "TextEdit document", deliveryAgent: "macOS app" }],
+          ["Confirm target acceptance", { type: "DELIVERY_ACCEPTED" }]
+        ]
+      },
+      handoff: {
+        title: "iPhone target disappears",
+        description: "Keep the first result safe, create a second dictation, then retry the first one.",
+        steps: [
+          ["Activate from the iOS keyboard", { type: "ACTIVATE", source: "iOS keyboard" }],
+          ["Prepare the containing app", { type: "BEGIN_PREPARATION" }],
+          ["Begin capture in the containing app", { type: "CAPTURE_READY", captureHost: "iOS containing app" }],
+          ["Commit first speech", { type: "FINAL_SEGMENT", text: "send the proposal to Alex" }],
+          ["Stop from the keyboard", { type: "STOP" }],
+          ["Finish first transcription", { type: "FINALIZE" }],
+          ["Prepare first delivery text", { type: "FORMAT_SUCCESS", text: "Send the proposal to Alex." }],
+          ["Try delivery to Notes", { type: "TRY_DELIVERY", target: "Notes text field", deliveryAgent: "iOS keyboard" }],
+          ["Lose the insertion target", { type: "DELIVERY_REJECTED", reason: "The keyboard disappeared before insertion." }],
+          ["Start a new Action Button session", { type: "ACTIVATE", source: "Action Button" }],
+          ["Prepare second session", { type: "BEGIN_PREPARATION" }],
+          ["Begin second capture", { type: "CAPTURE_READY", captureHost: "iOS containing app" }],
+          ["Commit second speech", { type: "FINAL_SEGMENT", text: "remind me at six" }],
+          ["Stop second capture", { type: "STOP" }],
+          ["Finish second transcription", { type: "FINALIZE" }],
+          ["Prepare second delivery text", { type: "FORMAT_SUCCESS", text: "Remind me at six." }],
+          ["Deliver second session", { type: "TRY_DELIVERY", target: "Messages composer", deliveryAgent: "iOS keyboard" }],
+          ["Messages accepts it", { type: "DELIVERY_ACCEPTED" }],
+          ["Select the first waiting session", { type: "SELECT_SESSION", sessionID: "S1" }],
+          ["Retry the first delivery", { type: "TRY_DELIVERY", sessionID: "S1", target: "Mail composer", deliveryAgent: "iOS keyboard" }],
+          ["Mail accepts it", { type: "DELIVERY_ACCEPTED" }]
+        ]
+      },
+      invalid: {
+        title: "Invalid concurrent start",
+        description: "Prove that two activation sources cannot create concurrent capture.",
+        steps: [
+          ["Activate from the iOS keyboard", { type: "ACTIVATE", source: "iOS keyboard" }],
+          ["Prepare the session", { type: "BEGIN_PREPARATION" }],
+          ["Begin capture", { type: "CAPTURE_READY", captureHost: "iOS containing app" }],
+          ["Try a second activation", { type: "ACTIVATE", source: "Action Button" }],
+          ["Try delivery before text exists", { type: "TRY_DELIVERY", target: "Notes text field", deliveryAgent: "iOS keyboard" }],
+          ["Stop the actual active session", { type: "STOP" }],
+          ["Send Stop again", { type: "STOP" }]
+        ]
+      }
+    };
+
+    let state = initialState();
+    let guided = { key: null, step: 0 };
+
+    const sourceInput = document.getElementById("source");
+    const rawInput = document.getElementById("raw-text");
+    const deliveryInput = document.getElementById("delivery-text");
+    const targetInput = document.getElementById("target");
+
+    function badgeClass(status) {
+      if (status === "delivered") return "good";
+      if (["failed", "cancelled", "discarded"].includes(status)) return "bad";
+      if (status === "awaitingDelivery") return "wait";
+      return "";
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function renderStateStrip() {
+      const selected = sessionByID(state, state.activeSessionID || state.selectedSessionID);
+      document.getElementById("state-strip").innerHTML = STATE_ORDER.map((status) => {
+        const current = selected && selected.state === status ? " current" : "";
+        return `<span class="state-node${current}">${STATE_LABELS[status]}</span>`;
+      }).join("");
+    }
+
+    function renderSessions() {
+      const list = document.getElementById("session-list");
+      document.getElementById("session-count").textContent = `${state.sessions.length} session${state.sessions.length === 1 ? "" : "s"}`;
+      document.getElementById("active-session").textContent = state.activeSessionID || "None";
+      document.getElementById("selected-session").textContent = state.selectedSessionID || "None";
+      document.getElementById("waiting-count").textContent = String(state.sessions.filter((session) => session.state === "awaitingDelivery").length);
+
+      if (state.sessions.length === 0) {
+        list.innerHTML = '<div class="empty">No sessions yet.<br>Choose a guided scenario or start one in free play.</div>';
+        return;
+      }
+
+      list.innerHTML = [...state.sessions].reverse().map((session) => {
+        const selected = session.id === state.selectedSessionID ? " selected" : "";
+        const active = session.id === state.activeSessionID ? " active-session" : "";
+        const raw = rawTranscript(session);
+        const roles = [
+          `Source: ${session.activationSource}`,
+          session.captureHost ? `Capture host: ${session.captureHost}` : null,
+          session.deliveryAgent ? `Delivery agent: ${session.deliveryAgent}` : null
+        ].filter(Boolean);
+        return `
+          <article class="session-card${selected}${active}" data-session-id="${session.id}">
+            <div class="session-top">
+              <span class="session-id">${session.id}</span>
+              <span class="badge ${badgeClass(session.state)}">${STATE_LABELS[session.state]}</span>
+            </div>
+            <div class="roles">${roles.map((role) => `<span class="role">${escapeHTML(role)}</span>`).join("")}</div>
+            ${session.volatileText ? `<div class="text-block"><small>Volatile segment</small><p>${escapeHTML(session.volatileText)}</p></div>` : ""}
+            ${raw ? `<div class="text-block"><small>Raw transcript${session.partial ? " · partial" : ""}</small><p>${escapeHTML(raw)}</p></div>` : ""}
+            ${session.deliveryText ? `<div class="text-block"><small>Delivery text</small><p>${escapeHTML(session.deliveryText)}</p></div>` : ""}
+            ${session.insertionTarget ? `<div class="text-block"><small>Last target · attempt ${session.deliveryAttempts}</small><p>${escapeHTML(session.insertionTarget)}</p></div>` : ""}
+            ${session.lastIssue ? `<div class="text-block issue"><small>Issue</small><p>${escapeHTML(session.lastIssue)}</p></div>` : ""}
+          </article>`;
+      }).join("");
+
+      list.querySelectorAll("[data-session-id]").forEach((card) => {
+        card.addEventListener("click", () => dispatch({ type: "SELECT_SESSION", sessionID: card.dataset.sessionId }));
+      });
+    }
+
+    function renderEvents() {
+      const list = document.getElementById("event-list");
+      document.getElementById("event-count").textContent = `${state.events.length} action${state.events.length === 1 ? "" : "s"}`;
+      if (state.events.length === 0) {
+        list.innerHTML = '<div class="empty">Accepted, ignored, and rejected actions appear here.</div>';
+        return;
+      }
+      list.innerHTML = [...state.events].reverse().map((event) => `
+        <div class="event ${event.result}">
+          <strong>${event.number}. ${escapeHTML(event.action)} · ${escapeHTML(event.result)}</strong>
+          <span>${escapeHTML(event.message)}</span>
+        </div>`).join("");
+    }
+
+    function renderScenario() {
+      const title = document.getElementById("scenario-title");
+      const description = document.getElementById("scenario-description");
+      const next = document.getElementById("scenario-next");
+      document.querySelectorAll("[data-scenario]").forEach((button) => button.classList.toggle("active", button.dataset.scenario === guided.key));
+
+      if (!guided.key) {
+        title.textContent = "Guided scenarios";
+        description.textContent = "Choose a scenario. Use Next step to inspect every transition.";
+        next.textContent = "No scenario selected.";
+        return;
+      }
+
+      const scenario = scenarios[guided.key];
+      title.textContent = scenario.title;
+      description.textContent = scenario.description;
+      if (guided.step >= scenario.steps.length) {
+        next.textContent = `Complete. ${scenario.steps.length} steps inspected.`;
+      } else {
+        next.textContent = `Next ${guided.step + 1}/${scenario.steps.length}: ${scenario.steps[guided.step][0]}`;
+      }
+    }
+
+    function render() {
+      renderScenario();
+      renderStateStrip();
+      renderSessions();
+      renderEvents();
+      document.getElementById("full-state").textContent = JSON.stringify(state, null, 2);
+    }
+
+    function dispatch(action) {
+      state = reduce(state, action);
+      render();
+    }
+
+    function chooseScenario(key) {
+      state = initialState();
+      guided.key = key;
+      guided.step = 0;
+      render();
+    }
+
+    function nextScenarioStep() {
+      if (!guided.key) return;
+      const scenario = scenarios[guided.key];
+      if (guided.step >= scenario.steps.length) return;
+      const action = scenario.steps[guided.step][1];
+      state = reduce(state, action);
+      guided.step += 1;
+      render();
+    }
+
+    document.querySelectorAll("[data-scenario]").forEach((button) => {
+      button.addEventListener("click", () => chooseScenario(button.dataset.scenario));
+    });
+
+    document.getElementById("next-step").addEventListener("click", nextScenarioStep);
+    document.getElementById("reset").addEventListener("click", () => {
+      state = initialState();
+      guided.key = null;
+      guided.step = 0;
+      render();
+    });
+
+    document.querySelectorAll("[data-action]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const active = activeSession(state);
+        const actions = {
+          activate: () => ({ type: "ACTIVATE", source: sourceInput.value }),
+          duplicate: () => ({ type: "ACTIVATE", source: sourceInput.value, existingSessionID: active ? active.id : null }),
+          prepare: () => ({ type: "BEGIN_PREPARATION" }),
+          "capture-ready": () => ({ type: "CAPTURE_READY", captureHost: sourceInput.value.includes("Mac") ? "macOS app" : "iOS containing app" }),
+          volatile: () => ({ type: "VOLATILE_SEGMENT", text: rawInput.value }),
+          "final-segment": () => ({ type: "FINAL_SEGMENT", text: rawInput.value }),
+          stop: () => ({ type: "STOP" }),
+          interrupt: () => ({ type: "INTERRUPT" }),
+          finalize: () => ({ type: "FINALIZE" }),
+          "format-success": () => ({ type: "FORMAT_SUCCESS", text: deliveryInput.value }),
+          "format-fallback": () => ({ type: "FORMAT_FALLBACK" }),
+          "try-delivery": () => ({ type: "TRY_DELIVERY", target: targetInput.value, deliveryAgent: sourceInput.value.includes("Mac") ? "macOS app" : "iOS keyboard" }),
+          "delivery-accepted": () => ({ type: "DELIVERY_ACCEPTED" }),
+          "delivery-rejected": () => ({ type: "DELIVERY_REJECTED", reason: "The insertion target rejected or lost the text field." }),
+          discard: () => ({ type: "DISCARD" }),
+          cancel: () => ({ type: "CANCEL" })
+        };
+        dispatch(actions[button.dataset.action]());
+      });
+    });
+
+    render();
+  </script>
+</body>
+</html>
