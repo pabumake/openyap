@@ -4,6 +4,7 @@ struct AppSettingsView: View {
     @ObservedObject var model: AppModel
     @ObservedObject var history: HistoryStore
     @ObservedObject var statistics: StatisticsStore
+    @ObservedObject var updates: AppUpdateController
     @Environment(\.openYapTheme) private var theme
     @State private var pendingRetention: HistoryRetentionPolicy?
     @State private var confirmRetentionChange = false
@@ -57,6 +58,18 @@ struct AppSettingsView: View {
                     set: { model.setLaunchAtLoginEnabled($0) }
                 ))
                 Toggle("Start in menu bar only", isOn: $model.startInMenuBarOnly)
+                Toggle("Check for updates automatically", isOn: Binding(
+                    get: { updates.automaticallyChecksForUpdates },
+                    set: { updates.automaticallyChecksForUpdates = $0 }
+                ))
+                HStack {
+                    Text("Automatic checks run once a day. OpenYap asks before it downloads and installs an update.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Check Now") { updates.checkForUpdates() }
+                        .disabled(!updates.canCheckForUpdates)
+                }
                 Text("Hides the main window and Dock icon the next time OpenYap starts. Use the menu bar icon to open the app.")
                     .font(.caption)
                     .foregroundStyle(.secondary)

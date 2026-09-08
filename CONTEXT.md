@@ -138,6 +138,18 @@ A recovery copy is delivery text exposed through local history or the pasteboard
 
 ## Persistence and support
 
+### Update check
+
+An update check asks the signed OpenYap appcast whether a newer compatible Mac build exists. A scheduled check runs at most once each day when enabled. A manual check runs when the user requests it.
+
+### Update candidate
+
+An update candidate is a newer build described by the signed appcast. It is installable only after Sparkle verifies the feed, release information, archive signature, bundle signature, version, and system requirements.
+
+### Trusted macOS release
+
+A trusted macOS release is a Developer ID signed and Apple-notarized app archive whose Sparkle archive and appcast have valid EdDSA signatures. A GitHub asset alone is not a trusted release.
+
 ### History entry
 
 A history entry is the local record of a session that produced useful text. It retains the raw transcript, formatted transcript, initial delivery text, current text, locale, timing, partial-result marker, delivery outcome, and applied replacements, but not microphone audio.
@@ -184,3 +196,7 @@ A failed session has neither deliverable text nor remaining work that can produc
 - OpenYap does not retain microphone audio unless a later, explicit product decision changes that policy.
 - OpenYap resolves automatic audio input again when each capture starts.
 - A disconnected manual input fails capture with a visible warning. OpenYap does not silently replace an explicit user choice.
+- OpenYap accepts update metadata and archives only through HTTPS and valid Sparkle signatures.
+- OpenYap asks the user before it downloads, installs, or relaunches for an update.
+- Scheduled update checks do not send a system profile.
+- Public updater-enabled Mac builds are Developer ID signed and Apple-notarized.

@@ -1,4 +1,4 @@
-name: Publish macOS prerelease
+name: Publish signed macOS prerelease
 
 on:
   push:
@@ -17,17 +17,20 @@ permissions:
 env:
   DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
 
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: macos-26
     permissions:
       contents: write
-    concurrency:
-      group: release-${{ inputs.tag || github.ref_name }}
-      cancel-in-progress: false
+    outputs:
+      version: ${{ steps.release.outputs.version }}
     steps:
       - name: Check out release tooling
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -61,35 +64,76 @@ jobs:
             exit 1
           fi
 
-      - name: Build and package tagged source
+      - name: Import Developer ID certificate
         env:
+          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+        run: |
+          set -euo pipefail
+          certificate="$RUNNER_TEMP/developer-id.p12"
+          keychain="$RUNNER_TEMP/openyap-signing.keychain-db"
+          keychain_password="$(openssl rand -hex 24)"
+          printf '%s' "$DEVELOPER_ID_P12_BASE64" | base64 --decode > "$certificate"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$certificate" -P "$DEVELOPER_ID_P12_PASSWORD" -A -f pkcs12 -k "$keychain"
+          security list-keychains -d user -s "$keychain"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$keychain_password" "$keychain"
+          echo "OPENYAP_SIGNING_KEYCHAIN=$keychain" >> "$GITHUB_ENV"
+
+      - name: Write App Store Connect API key
+        env:
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+        run: |
+          set -euo pipefail
+          key_path="$RUNNER_TEMP/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8"
+          printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" > "$key_path"
+          chmod 600 "$key_path"
+          echo "OPENYAP_NOTARY_KEY_PATH=$key_path" >> "$GITHUB_ENV"
+
+      - name: Restore current appcast
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/release"
+          appcast="$RUNNER_TEMP/release/appcast.xml"
+          if ! curl --fail --silent --show-error --location \
+            https://pabumake.github.io/openyap/appcast.xml \
+            --output "$appcast"; then
+            rm -f "$appcast"
+          fi
+
+      - name: Build, sign, notarize, and package tagged source
+        env:
+          OPENYAP_DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+          OPENYAP_NOTARY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          OPENYAP_NOTARY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          OPENYAP_SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
           RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           set -euo pipefail
           ./scripts/package-release-mac.sh "$RELEASE_TAG" "$RUNNER_TEMP/release"
 
-      - name: Prepare release notes
+      - name: Prepare GitHub release notes
         env:
           RELEASE_VERSION: ${{ steps.release.outputs.version }}
-          RELEASE_TAG: ${{ steps.release.outputs.tag }}
         run: |
           set -euo pipefail
           notes="$RUNNER_TEMP/release-notes.md"
           {
-            echo '> [!WARNING]'
-            echo '> This is an unsigned experimental build. macOS cannot verify its publisher. Download it only from this official OpenYap release.'
-            echo
             echo 'Requires macOS 26 and an Apple silicon Mac.'
             echo
-            echo 'Move OpenYap.app to `/Applications`. If Gatekeeper blocks the first launch, Control-click the app and choose Open, or use System Settings > Privacy & Security > Open Anyway.'
-            echo
-            echo "## Changes in $RELEASE_VERSION"
-            awk -v version="$RELEASE_VERSION" '
-              $0 ~ "^## " version " -" { in_release = 1; next }
-              in_release && /^## / { exit }
-              in_release { print }
-            ' <(git show "$RELEASE_TAG:CHANGELOG.md")
+            cat "$RUNNER_TEMP/release/OpenYap-$RELEASE_VERSION-macOS-arm64.md"
           } > "$notes"
+
+      - name: Upload appcast for Pages
+        uses: actions/upload-artifact@v7
+        with:
+          name: appcast-${{ steps.release.outputs.version }}
+          path: ${{ runner.temp }}/release/appcast.xml
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Publish GitHub prerelease
         env:
@@ -101,8 +145,44 @@ jobs:
           gh release create "$RELEASE_TAG" \
             "$RUNNER_TEMP/release/OpenYap-$RELEASE_VERSION-macOS-arm64.zip" \
             "$RUNNER_TEMP/release/OpenYap-$RELEASE_VERSION-macOS-arm64.zip.sha256" \
+            "$RUNNER_TEMP/release/appcast.xml" \
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
             --prerelease \
             --title "OpenYap $RELEASE_VERSION" \
             --notes-file "$RUNNER_TEMP/release-notes.md"
+
+      - name: Delete temporary signing keychain
+        if: always()
+        run: |
+          if [[ -n "${OPENYAP_SIGNING_KEYCHAIN:-}" ]]; then
+            security delete-keychain "$OPENYAP_SIGNING_KEYCHAIN" || true
+          fi
+
+  deploy-appcast:
+    needs: release
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Download signed appcast
+        uses: actions/download-artifact@v8
+        with:
+          name: appcast-${{ needs.release.outputs.version }}
+          path: ${{ runner.temp }}/pages
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ${{ runner.temp }}/pages
+
+      - name: Deploy appcast to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

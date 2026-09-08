@@ -27,9 +27,13 @@ struct AppVersionInfo: Equatable, Sendable {
 struct AppLinks: Equatable, Sendable {
     let repositoryURL: URL
     let changelogURL: URL
+    let releasesURL: URL
+    let updateFeedURL: URL
 
     static let current = AppLinks(
         repositoryURL: URL(string: "https://github.com/pabumake/openyap")!,
-        changelogURL: URL(string: "https://raw.githubusercontent.com/pabumake/openyap/main/CHANGELOG.md")!
+        changelogURL: URL(string: "https://raw.githubusercontent.com/pabumake/openyap/main/CHANGELOG.md")!,
+        releasesURL: URL(string: "https://github.com/pabumake/openyap/releases")!,
+        updateFeedURL: URL(string: "https://pabumake.github.io/openyap/appcast.xml")!
     )
 }

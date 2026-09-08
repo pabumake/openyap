@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AboutView: View {
     @ObservedObject var changelog: ChangelogStore
+    @ObservedObject var updates: AppUpdateController
     @Environment(\.openYapTheme) private var theme
 
     private let version = AppVersionInfo.current
@@ -42,6 +43,12 @@ struct AboutView: View {
                 Label("Open GitHub", systemImage: "arrow.up.right.square")
             }
             .buttonStyle(.borderedProminent)
+            Button {
+                updates.checkForUpdates()
+            } label: {
+                Label("Check for Updates", systemImage: "arrow.triangle.2.circlepath")
+            }
+            .disabled(!updates.canCheckForUpdates)
         }
         .padding(22)
         .background(theme.palette.mantle, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
@@ -83,7 +90,10 @@ struct AboutView: View {
             }
 
             Divider()
-            Text(renderedChangelog)
+            ChangelogMarkdownView(
+                markdown: changelog.markdown,
+                baseURL: changelog.links.repositoryURL
+            )
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -93,9 +103,5 @@ struct AboutView: View {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(theme.palette.surface1.opacity(0.7), lineWidth: 1)
         }
-    }
-
-    private var renderedChangelog: AttributedString {
-        (try? AttributedString(markdown: changelog.markdown)) ?? AttributedString(changelog.markdown)
     }
 }

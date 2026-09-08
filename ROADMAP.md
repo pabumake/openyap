@@ -4,6 +4,8 @@
 
 Version 0.1.0 covers the local macOS dictation loop, cleanup, word list, snippets, history, statistics, microphone selection, global shortcut, menu-bar operation, and themes.
 
+The next signed build adds structured Markdown release notes and daily Sparkle update checks from GitHub. The user approves each download, installation, and relaunch.
+
 ## Next
 
 ### App-specific formatting profiles
@@ -17,4 +19,3 @@ The first pass should support a default profile plus optional profiles for indiv
 - Voice commands for editing selected text.
 - A native iOS capture app and keyboard delivery prototype.
 - Optional encrypted sync for word lists, snippets, and settings.
-- Automatic update checks after signed GitHub releases exist.

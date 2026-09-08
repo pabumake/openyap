@@ -7,9 +7,29 @@ project_directory=${script_directory:h}
 developer_directory=${DEVELOPER_DIR:-/Applications/Xcode.app/Contents/Developer}
 release_tag=${1:-}
 requested_output_directory=${2:-$project_directory/.build/releases/$release_tag}
+developer_id_identity=${OPENYAP_DEVELOPER_ID_IDENTITY:-Developer ID Application}
+sparkle_key_account=${OPENYAP_SPARKLE_KEY_ACCOUNT:-dev.pabu.openyap}
+
+require_environment() {
+  local variable_name=$1
+  if [[ -z "${(P)variable_name:-}" ]]; then
+    print -u2 "Required environment variable is missing: $variable_name"
+    exit 64
+  fi
+}
 
 if ! print -r -- "$release_tag" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
   print -u2 "Usage: $0 vMAJOR.MINOR.PATCH [output-directory]"
+  exit 64
+fi
+
+require_environment OPENYAP_DEVELOPMENT_TEAM
+require_environment OPENYAP_NOTARY_KEY_ID
+require_environment OPENYAP_NOTARY_ISSUER_ID
+require_environment OPENYAP_NOTARY_KEY_PATH
+
+if [[ ! -f "$OPENYAP_NOTARY_KEY_PATH" ]]; then
+  print -u2 "Notary API key does not exist: $OPENYAP_NOTARY_KEY_PATH"
   exit 64
 fi
 
@@ -67,7 +87,10 @@ DEVELOPER_DIR="$developer_directory" xcodebuild archive -quiet \
   -destination 'generic/platform=macOS' \
   -archivePath "$archive_path" \
   -derivedDataPath "$derived_data_path" \
-  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGN_STYLE=Manual \
+  CODE_SIGN_IDENTITY="$developer_id_identity" \
+  DEVELOPMENT_TEAM="$OPENYAP_DEVELOPMENT_TEAM" \
+  OTHER_CODE_SIGN_FLAGS=--timestamp \
   ARCHS=arm64 \
   ONLY_ACTIVE_ARCH=NO
 
@@ -76,8 +99,6 @@ staged_application=$staging_directory/OpenYap.app
 staged_info=$staged_application/Contents/Info.plist
 
 ditto --noextattr --noqtn "$built_application" "$staged_application"
-xattr -cr "$staged_application"
-codesign --force --sign - "$staged_application"
 codesign --verify --deep --strict --verbose=2 "$staged_application"
 
 bundle_identifier=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$staged_info")
@@ -86,28 +107,58 @@ bundle_build=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$staged_info
 bundle_minimum_system=$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$staged_info")
 binary_architectures=$(lipo -archs "$staged_application/Contents/MacOS/OpenYap")
 signature_details=$(codesign -dvvv "$staged_application" 2>&1)
+update_feed=$(/usr/libexec/PlistBuddy -c 'Print :SUFeedURL' "$staged_info")
+update_public_key=$(/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' "$staged_info")
+update_interval=$(/usr/libexec/PlistBuddy -c 'Print :SUScheduledCheckInterval' "$staged_info")
 
 [[ "$bundle_identifier" == "dev.pabu.openyap" ]] || { print -u2 "Unexpected bundle identifier: $bundle_identifier"; exit 68; }
 [[ "$bundle_version" == "$release_version" ]] || { print -u2 "Unexpected bundle version: $bundle_version"; exit 69; }
 [[ "$bundle_build" == "$project_build" ]] || { print -u2 "Unexpected build number: $bundle_build"; exit 70; }
 [[ "$bundle_minimum_system" == "26.0" ]] || { print -u2 "Unexpected minimum macOS version: $bundle_minimum_system"; exit 71; }
 [[ "$binary_architectures" == "arm64" ]] || { print -u2 "Unexpected architectures: $binary_architectures"; exit 72; }
-print -r -- "$signature_details" | grep -Fq 'Signature=adhoc' || { print -u2 'Release app is not ad hoc signed'; exit 73; }
-print -r -- "$signature_details" | grep -Fq 'TeamIdentifier=not set' || { print -u2 'Unsigned release unexpectedly has a Team ID'; exit 74; }
+[[ "$update_feed" == "https://pabumake.github.io/openyap/appcast.xml" ]] || { print -u2 'Unexpected Sparkle feed URL'; exit 72; }
+[[ "$update_public_key" == "n/N7vrOCRMwHYm+pVafKTu0FWnp466unUYVOOmn0cRY=" ]] || { print -u2 'Unexpected Sparkle public key'; exit 72; }
+[[ "$update_interval" == "86400" ]] || { print -u2 'Unexpected Sparkle check interval'; exit 72; }
+/usr/libexec/PlistBuddy -c 'Print :SURequireSignedFeed' "$staged_info" | grep -Fq true || { print -u2 'Signed Sparkle feeds are not required'; exit 72; }
+/usr/libexec/PlistBuddy -c 'Print :SUVerifyUpdateBeforeExtraction' "$staged_info" | grep -Fq true || { print -u2 'Sparkle does not verify updates before extraction'; exit 72; }
+/usr/libexec/PlistBuddy -c 'Print :SUAllowsAutomaticUpdates' "$staged_info" | grep -Fq false || { print -u2 'Unattended update installation is enabled'; exit 72; }
+print -r -- "$signature_details" | grep -Fq 'Authority=Developer ID Application:' || { print -u2 'Release app is not Developer ID signed'; exit 73; }
+print -r -- "$signature_details" | grep -Fq "TeamIdentifier=$OPENYAP_DEVELOPMENT_TEAM" || { print -u2 'Release app has the wrong Team ID'; exit 74; }
 [[ -f "$staged_application/Contents/Resources/CHANGELOG.md" ]] || { print -u2 'Bundled changelog is missing'; exit 75; }
 [[ -f "$staged_application/Contents/Resources/AppIcon.icns" ]] || { print -u2 'Bundled app icon is missing'; exit 76; }
 
 zip_name="OpenYap-$release_version-macOS-arm64.zip"
 checksum_name="$zip_name.sha256"
+notes_name="OpenYap-$release_version-macOS-arm64.md"
 zip_path=$output_directory/$zip_name
 checksum_path=$output_directory/$checksum_name
+notes_path=$output_directory/$notes_name
 
-if [[ -e "$zip_path" || -e "$checksum_path" ]]; then
+if [[ -e "$zip_path" || -e "$checksum_path" || -e "$notes_path" ]]; then
   print -u2 "Release output already exists in $output_directory"
   exit 77
 fi
 
+print "Submitting OpenYap $release_version for notarization"
+notary_zip=$temporary_directory/OpenYap-notary.zip
+ditto -c -k --sequesterRsrc --keepParent "$staged_application" "$notary_zip"
+DEVELOPER_DIR="$developer_directory" xcrun notarytool submit "$notary_zip" \
+  --key "$OPENYAP_NOTARY_KEY_PATH" \
+  --key-id "$OPENYAP_NOTARY_KEY_ID" \
+  --issuer "$OPENYAP_NOTARY_ISSUER_ID" \
+  --wait
+
+DEVELOPER_DIR="$developer_directory" xcrun stapler staple "$staged_application"
+DEVELOPER_DIR="$developer_directory" xcrun stapler validate "$staged_application"
+spctl --assess --type execute --verbose=2 "$staged_application"
+
 ditto -c -k --sequesterRsrc --keepParent "$staged_application" "$zip_path"
+
+awk -v version="$release_version" '
+  $0 ~ "^## " version " -" { in_release = 1; next }
+  in_release && /^## / { exit }
+  in_release { print }
+' "$source_directory/CHANGELOG.md" > "$notes_path"
 
 (
   cd "$output_directory"
@@ -119,11 +170,35 @@ ditto -x -k "$zip_path" "$extraction_directory"
 extracted_application=$extraction_directory/OpenYap.app
 codesign --verify --deep --strict --verbose=2 "$extracted_application"
 [[ "$(lipo -archs "$extracted_application/Contents/MacOS/OpenYap")" == "arm64" ]] || { print -u2 'ZIP architecture verification failed'; exit 78; }
+spctl --assess --type execute --verbose=2 "$extracted_application"
 
-if spctl --assess --type execute "$extracted_application" >/dev/null 2>&1; then
-  print -u2 'Gatekeeper unexpectedly accepted the unsigned prerelease'
+sparkle_tools=$derived_data_path/SourcePackages/artifacts/sparkle/Sparkle/bin
+generate_appcast=$sparkle_tools/generate_appcast
+if [[ ! -x "$generate_appcast" ]]; then
+  print -u2 "Sparkle generate_appcast was not found at $generate_appcast"
   exit 79
 fi
 
+appcast_arguments=(
+  --download-url-prefix "https://github.com/pabumake/openyap/releases/download/$release_tag/"
+  --embed-release-notes
+  --link "https://github.com/pabumake/openyap/releases/tag/$release_tag"
+  --maximum-deltas 0
+  --maximum-versions 3
+  --disable-signing-warning
+  -o "$output_directory/appcast.xml"
+)
+
+if [[ -n "${OPENYAP_SPARKLE_PRIVATE_KEY:-}" ]]; then
+  print -rn -- "$OPENYAP_SPARKLE_PRIVATE_KEY" | "$generate_appcast" --ed-key-file - "${appcast_arguments[@]}" "$output_directory"
+else
+  "$generate_appcast" --account "$sparkle_key_account" "${appcast_arguments[@]}" "$output_directory"
+fi
+
+[[ -f "$output_directory/appcast.xml" ]] || { print -u2 'Sparkle appcast was not generated'; exit 80; }
+grep -Fq 'sparkle:edSignature=' "$output_directory/appcast.xml" || { print -u2 'Sparkle archive signature is missing'; exit 81; }
+grep -Fq '<!-- sparkle-signatures:' "$output_directory/appcast.xml" || { print -u2 'Sparkle feed signature is missing'; exit 82; }
+
 print "Created $zip_path"
 print "Created $checksum_path"
+print "Created $output_directory/appcast.xml"

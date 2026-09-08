@@ -2,6 +2,20 @@
 
 OpenYap follows semantic versioning. GitHub publishes this file from the `main` branch, and the app keeps a bundled copy for offline use.
 
+## Unreleased
+
+## 0.2.0 - 2026-09-08
+
+### Added
+
+- Daily signed update checks from the OpenYap GitHub release feed.
+- Manual update checks in About, Settings, and the menu bar.
+
+### Changed
+
+- About now renders changelog headings, lists, links, quotes, code blocks, and tables as structured Markdown.
+- The macOS release workflow now signs with Developer ID, submits the app for notarization, and publishes a signed Sparkle appcast.
+
 ## 0.1.0 - 2026-08-24
 
 ### Added

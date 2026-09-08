@@ -33,6 +33,7 @@ private enum AppSection: String, CaseIterable, Identifiable {
 
 struct ContentView: View {
     @ObservedObject var model: AppModel
+    @ObservedObject var updates: AppUpdateController
     @Environment(\.openYapTheme) private var theme
     @State private var selectedSection: AppSection? = .history
 
@@ -89,9 +90,14 @@ struct ContentView: View {
             case .snippets:
                 SnippetsView(store: model.snippetStore)
             case .settings:
-                AppSettingsView(model: model, history: model.historyStore, statistics: model.statisticsStore)
+                AppSettingsView(
+                    model: model,
+                    history: model.historyStore,
+                    statistics: model.statisticsStore,
+                    updates: updates
+                )
             case .about:
-                AboutView(changelog: model.changelogStore)
+                AboutView(changelog: model.changelogStore, updates: updates)
             }
         }
         .background(theme.palette.base)

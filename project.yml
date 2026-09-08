@@ -9,10 +9,42 @@ settings:
     SWIFT_VERSION: "6.0"
     MACOSX_DEPLOYMENT_TARGET: "26.0"
     CODE_SIGN_STYLE: Automatic
+packages:
+  Markdown:
+    url: https://github.com/swiftlang/swift-markdown.git
+    exactVersion: 0.8.0
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.9.6
 targets:
   OpenYap:
     type: application
     platform: macOS
+    info:
+      path: OpenYap/Info.plist
+      properties:
+        CFBundleDisplayName: OpenYap
+        CFBundleExecutable: $(EXECUTABLE_NAME)
+        CFBundleIconName: AppIcon
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleInfoDictionaryVersion: "6.0"
+        CFBundleName: $(PRODUCT_NAME)
+        CFBundlePackageType: APPL
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.productivity
+        LSMinimumSystemVersion: $(MACOSX_DEPLOYMENT_TARGET)
+        NSMicrophoneUsageDescription: OpenYap needs microphone access to turn your speech into text on this Mac.
+        NSPrincipalClass: NSApplication
+        SUAllowsAutomaticUpdates: false
+        SUAutomaticallyUpdate: false
+        SUEnableAutomaticChecks: true
+        SUEnableSystemProfiling: false
+        SUFeedURL: https://pabumake.github.io/openyap/appcast.xml
+        SUPublicEDKey: n/N7vrOCRMwHYm+pVafKTu0FWnp466unUYVOOmn0cRY=
+        SURequireSignedFeed: true
+        SUScheduledCheckInterval: 86400
+        SUVerifyUpdateBeforeExtraction: true
     sources:
       - path: OpenYap
       - path: CHANGELOG.md
@@ -21,21 +53,16 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.pabu.openyap
         PRODUCT_NAME: OpenYap
-        MARKETING_VERSION: 0.1.0
-        CURRENT_PROJECT_VERSION: 1
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: OpenYap
-        INFOPLIST_KEY_CFBundleShortVersionString: "$(MARKETING_VERSION)"
-        INFOPLIST_KEY_CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
-        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
-        INFOPLIST_KEY_NSMicrophoneUsageDescription: OpenYap needs microphone access to turn your speech into text on this Mac.
-        INFOPLIST_KEY_NSPrincipalClass: NSApplication
+        MARKETING_VERSION: 0.2.0
+        CURRENT_PROJECT_VERSION: 2
         ENABLE_APP_SANDBOX: NO
+        CODE_SIGN_ENTITLEMENTS: OpenYap/OpenYap.entitlements
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         DEAD_CODE_STRIPPING: YES
       configs:
         Release:
           ARCHS: arm64
+          ENABLE_HARDENED_RUNTIME: YES
           ONLY_ACTIVE_ARCH: NO
     postCompileScripts:
       - name: Remove extended attributes before signing
@@ -44,6 +71,9 @@ targets:
     scheme:
       testTargets:
         - OpenYapTests
+    dependencies:
+      - package: Markdown
+      - package: Sparkle
   OpenYapTests:
     type: bundle.unit-test
     platform: macOS

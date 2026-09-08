@@ -6,7 +6,9 @@ import XCTest
 final class ChangelogStoreTests: XCTestCase {
     private let links = AppLinks(
         repositoryURL: URL(string: "https://example.com/repository")!,
-        changelogURL: URL(string: "https://example.com/CHANGELOG.md")!
+        changelogURL: URL(string: "https://example.com/CHANGELOG.md")!,
+        releasesURL: URL(string: "https://example.com/releases")!,
+        updateFeedURL: URL(string: "https://example.com/appcast.xml")!
     )
 
     func testUsesRemoteChangelogWhenFetchSucceeds() async {

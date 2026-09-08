@@ -24,6 +24,7 @@
 		4919A50AB296027BF1C922A0 /* ChangelogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 435B00E95B80F5443E92D181 /* ChangelogStore.swift */; };
 		4A1C556BAAC083D8810D1E53 /* MacTextDelivery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89DBDBB2960E5592689AC386 /* MacTextDelivery.swift */; };
 		4A1F3B61FF7D3F593732E549 /* WordListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756F755723692318E9D67670 /* WordListView.swift */; };
+		514747A87694E3CD0F58CC92 /* AppUpdateController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 546CEA7E27F7C0C9DEFAC77A /* AppUpdateController.swift */; };
 		58ACF5AD7005B46FBEB802CD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0058DB8C7F10D4F374C0C574 /* Assets.xcassets */; };
 		6102EBF2B32ED6695AC21A9E /* LexiconStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F55BF7188FAB6054C8DA7B13 /* LexiconStore.swift */; };
 		62018A5B25DB0B8EBDD21374 /* ChangelogStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EF84F59CF42D8EC8178C124 /* ChangelogStoreTests.swift */; };
@@ -37,19 +38,23 @@
 		8C8CE09A662919F370C9F2C9 /* ThemeRenderingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7D9CDA06CA052E91D9E2D9 /* ThemeRenderingTests.swift */; };
 		90BC25099BEFCEA729755DA6 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F007B75892694F7AC757135 /* HistoryView.swift */; };
 		9135E66953440F51594D6E04 /* StatisticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A2788A3A105A9BC950404DE /* StatisticsView.swift */; };
+		989C3CA6D39F73CF53398E58 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = B37FCC0E5DAB43FFA5E3D794 /* Sparkle */; };
 		9D1D04CF6ED9DE70FCC354BC /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BADD971BC168F393A5495A0 /* AppModel.swift */; };
 		9DECE957DA0CC8AB498A3118 /* AudioInputDeviceCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EAB8C91762B80A800FBBD22 /* AudioInputDeviceCatalog.swift */; };
+		A294D702B1E63051FBBB1F86 /* ChangelogMarkdownDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 575392AB76B9BA82259FED93 /* ChangelogMarkdownDocumentTests.swift */; };
 		A2AE8CD0DDCE01C3D5E753B1 /* AppSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD724EC767A3A46016774A99 /* AppSettingsView.swift */; };
 		A46697C39BC2AB8D3647A8DF /* HistoryStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B397B3FA60D65E527027ACF2 /* HistoryStoreTests.swift */; };
 		AE5F3E718814E5CDBB09C148 /* StatisticsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5080058DE4ACD12E66B702FE /* StatisticsStoreTests.swift */; };
 		AEEA063BDA021F4F9E539EE8 /* ShortcutDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37221328A8C3432B01D7A9C /* ShortcutDefinition.swift */; };
 		B37B547A876D49910ED029FB /* CHANGELOG.md in Resources */ = {isa = PBXBuildFile; fileRef = 58C09AE353AFF9FFAA187D18 /* CHANGELOG.md */; };
 		B6DBB581EFB3DE4D37FC19BD /* CaptureCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 638706C31EE4B4FF39858137 /* CaptureCard.swift */; };
+		BB8CFF4FF91012641273091D /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = D37290ABF008AF15B5635D13 /* Markdown */; };
 		C3EAB5BC89F5FC033E60DA40 /* AppVersionInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8EE12B2FF751104042C7428 /* AppVersionInfo.swift */; };
 		C9A18C2DC57AEF1DC4B7A14E /* LaunchAtLoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D4948CDCDC3E71FBBA2D4C0 /* LaunchAtLoginService.swift */; };
 		CAF5786D6EEC45A120A41DC6 /* OpenYapApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD11047F60313C12F01E229E /* OpenYapApp.swift */; };
 		DE410E7088893C2B72E48A13 /* AppleSpeechEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32B6D1B5D49B826E76A8A188 /* AppleSpeechEngine.swift */; };
 		E12EF8E5911A69124A249203 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D356326ACFDC6C1EADBEFE2F /* PersistenceController.swift */; };
+		E2C72A7E47EF08E63412DF09 /* ChangelogMarkdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B0FE070EDAFDECA2DCED176 /* ChangelogMarkdownView.swift */; };
 		E70529957FED25123CFBE3B9 /* SnippetStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E09ACFAB33F7B679E232C9F /* SnippetStoreTests.swift */; };
 		EE87B60A0802C11B834411DB /* HistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92AA2645D7F33EA3A78309C0 /* HistoryStore.swift */; };
 		F362076CC1B1E8983BDFE214 /* TranscriptPreparationPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1947357375C3977EF07A2F5 /* TranscriptPreparationPipeline.swift */; };
@@ -68,9 +73,12 @@
 
 /* Begin PBXFileReference section */
 		0058DB8C7F10D4F374C0C574 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		0B0FE070EDAFDECA2DCED176 /* ChangelogMarkdownView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangelogMarkdownView.swift; sourceTree = "<group>"; };
 		0B3B664D7C71E604B9875423 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		0D5A5587AE89F1A4605D4822 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		0E7C0F0D26AC413339FF2A01 /* AppleTranscriptFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleTranscriptFormatter.swift; sourceTree = "<group>"; };
 		0EAB8C91762B80A800FBBD22 /* AudioInputDeviceCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioInputDeviceCatalog.swift; sourceTree = "<group>"; };
+		12A7A69966DF7B7453A53099 /* OpenYap.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OpenYap.entitlements; sourceTree = "<group>"; };
 		1E2C5DB398AD490F69D4692D /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		1E6A335DC51A5B8A839271CD /* ShortcutDefinitionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutDefinitionTests.swift; sourceTree = "<group>"; };
 		236A487C4F7D3C3E69583FE5 /* HistoryModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryModels.swift; sourceTree = "<group>"; };
@@ -80,6 +88,8 @@
 		435B00E95B80F5443E92D181 /* ChangelogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangelogStore.swift; sourceTree = "<group>"; };
 		4BDFB0E95FDBE47A1EF057BD /* SnippetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetStore.swift; sourceTree = "<group>"; };
 		5080058DE4ACD12E66B702FE /* StatisticsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsStoreTests.swift; sourceTree = "<group>"; };
+		546CEA7E27F7C0C9DEFAC77A /* AppUpdateController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdateController.swift; sourceTree = "<group>"; };
+		575392AB76B9BA82259FED93 /* ChangelogMarkdownDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangelogMarkdownDocumentTests.swift; sourceTree = "<group>"; };
 		58C09AE353AFF9FFAA187D18 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
 		5BADD971BC168F393A5495A0 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		5EF84F59CF42D8EC8178C124 /* ChangelogStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangelogStoreTests.swift; sourceTree = "<group>"; };
@@ -118,6 +128,18 @@
 		FD11047F60313C12F01E229E /* OpenYapApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenYapApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		65EDF64BB227175EEA753F1A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB8CFF4FF91012641273091D /* Markdown in Frameworks */,
+				989C3CA6D39F73CF53398E58 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
 		284E6D4BA33062AECECE80BD /* Domain */ = {
 			isa = PBXGroup;
@@ -139,6 +161,7 @@
 				88E570742B90ADD40007BC97 /* AboutView.swift */,
 				CD724EC767A3A46016774A99 /* AppSettingsView.swift */,
 				638706C31EE4B4FF39858137 /* CaptureCard.swift */,
+				0B0FE070EDAFDECA2DCED176 /* ChangelogMarkdownView.swift */,
 				5F007B75892694F7AC757135 /* HistoryView.swift */,
 				B59D4476F2CEF6A8951E0D68 /* SnippetsView.swift */,
 				3A2788A3A105A9BC950404DE /* StatisticsView.swift */,
@@ -178,6 +201,7 @@
 			children = (
 				BFE86E49054C851DF0AB1035 /* AppVersionInfoTests.swift */,
 				650A72319EAF483C3652C39B /* AudioInputDeviceCatalogTests.swift */,
+				575392AB76B9BA82259FED93 /* ChangelogMarkdownDocumentTests.swift */,
 				5EF84F59CF42D8EC8178C124 /* ChangelogStoreTests.swift */,
 				B397B3FA60D65E527027ACF2 /* HistoryStoreTests.swift */,
 				BC6133CE7816F73C51ACF08B /* LexiconProcessorTests.swift */,
@@ -196,6 +220,7 @@
 		9FD58B128238BE999294AFE3 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				546CEA7E27F7C0C9DEFAC77A /* AppUpdateController.swift */,
 				435B00E95B80F5443E92D181 /* ChangelogStore.swift */,
 				8BF75733D7E828F5E8683CAA /* GlobalShortcutMonitor.swift */,
 				7D4948CDCDC3E71FBBA2D4C0 /* LaunchAtLoginService.swift */,
@@ -249,6 +274,8 @@
 				5BADD971BC168F393A5495A0 /* AppModel.swift */,
 				0058DB8C7F10D4F374C0C574 /* Assets.xcassets */,
 				0B3B664D7C71E604B9875423 /* ContentView.swift */,
+				0D5A5587AE89F1A4605D4822 /* Info.plist */,
+				12A7A69966DF7B7453A53099 /* OpenYap.entitlements */,
 				FD11047F60313C12F01E229E /* OpenYapApp.swift */,
 				284E6D4BA33062AECECE80BD /* Domain */,
 				5F4E2DC88A67FE3884454B5F /* Formatting */,
@@ -290,6 +317,7 @@
 				35034A0669998C126E75CC83 /* Sources */,
 				17515C5EEA5D4752BDC5167B /* Remove extended attributes before signing */,
 				3C650AD13C321DE5809F55B3 /* Resources */,
+				65EDF64BB227175EEA753F1A /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -297,6 +325,8 @@
 			);
 			name = OpenYap;
 			packageProductDependencies = (
+				D37290ABF008AF15B5635D13 /* Markdown */,
+				B37FCC0E5DAB43FFA5E3D794 /* Sparkle */,
 			);
 			productName = OpenYap;
 			productReference = A39870C6CCC14503C8C4E134 /* OpenYap.app */;
@@ -328,6 +358,10 @@
 			);
 			mainGroup = C6FD4B5CB51787EE4D8FBB5D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				7DF0ACDBE2BD23B07D60E1E4 /* XCRemoteSwiftPackageReference "swift-markdown" */,
+				CFED46DC86BEE2730967F292 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = ABFAE9C8ED7B3348BE303DE8 /* Products */;
 			projectDirPath = "";
@@ -382,11 +416,13 @@
 				9D1D04CF6ED9DE70FCC354BC /* AppModel.swift in Sources */,
 				A2AE8CD0DDCE01C3D5E753B1 /* AppSettingsView.swift in Sources */,
 				084E3EC5D56579B26E7E8E3E /* AppTheme.swift in Sources */,
+				514747A87694E3CD0F58CC92 /* AppUpdateController.swift in Sources */,
 				C3EAB5BC89F5FC033E60DA40 /* AppVersionInfo.swift in Sources */,
 				DE410E7088893C2B72E48A13 /* AppleSpeechEngine.swift in Sources */,
 				63E213EC5FAB2C1B3F4ED266 /* AppleTranscriptFormatter.swift in Sources */,
 				9DECE957DA0CC8AB498A3118 /* AudioInputDeviceCatalog.swift in Sources */,
 				B6DBB581EFB3DE4D37FC19BD /* CaptureCard.swift in Sources */,
+				E2C72A7E47EF08E63412DF09 /* ChangelogMarkdownView.swift in Sources */,
 				4919A50AB296027BF1C922A0 /* ChangelogStore.swift in Sources */,
 				32DBB950178F1AA36AE72A60 /* ContentView.swift in Sources */,
 				03D84BFE729E5374C3C23298 /* DictationOverlayController.swift in Sources */,
@@ -419,6 +455,7 @@
 			files = (
 				F6ECE469EC6DD0EC8D65EB66 /* AppVersionInfoTests.swift in Sources */,
 				23573E694A31E9BC06A1940E /* AudioInputDeviceCatalogTests.swift in Sources */,
+				A294D702B1E63051FBBB1F86 /* ChangelogMarkdownDocumentTests.swift in Sources */,
 				62018A5B25DB0B8EBDD21374 /* ChangelogStoreTests.swift in Sources */,
 				A46697C39BC2AB8D3647A8DF /* HistoryStoreTests.swift in Sources */,
 				7994CB30A3309FE8CD775E66 /* LexiconProcessorTests.swift in Sources */,
@@ -449,22 +486,18 @@
 			buildSettings = {
 				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = OpenYap/OpenYap.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = OpenYap;
-				INFOPLIST_KEY_CFBundleShortVersionString = "$(MARKETING_VERSION)";
-				INFOPLIST_KEY_CFBundleVersion = "$(CURRENT_PROJECT_VERSION)";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "OpenYap needs microphone access to turn your speech into text on this Mac.";
-				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = OpenYap/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.pabu.openyap;
 				PRODUCT_NAME = OpenYap;
@@ -476,22 +509,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = OpenYap/OpenYap.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = NO;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = OpenYap;
-				INFOPLIST_KEY_CFBundleShortVersionString = "$(MARKETING_VERSION)";
-				INFOPLIST_KEY_CFBundleVersion = "$(CURRENT_PROJECT_VERSION)";
-				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "OpenYap needs microphone access to turn your speech into text on this Mac.";
-				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				INFOPLIST_FILE = OpenYap/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.pabu.openyap;
 				PRODUCT_NAME = OpenYap;
 				SDKROOT = macosx;
@@ -684,6 +712,38 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7DF0ACDBE2BD23B07D60E1E4 /* XCRemoteSwiftPackageReference "swift-markdown" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/swiftlang/swift-markdown.git";
+			requirement = {
+				kind = exactVersion;
+				version = 0.8.0;
+			};
+		};
+		CFED46DC86BEE2730967F292 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.9.6;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B37FCC0E5DAB43FFA5E3D794 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CFED46DC86BEE2730967F292 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+		D37290ABF008AF15B5635D13 /* Markdown */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7DF0ACDBE2BD23B07D60E1E4 /* XCRemoteSwiftPackageReference "swift-markdown" */;
+			productName = Markdown;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5355C0481231C95896B7C531 /* Project object */;
 }

@@ -1,5 +1,7 @@
 # Publishing OpenYap macOS binaries on GitHub
 
+This document records the unsigned 0.1.0 release decision. [macOS updates and cross-platform options](macos-updates-and-cross-platform-options.md) supersedes it for updater-enabled releases.
+
 ## Question and constraints
 
 How should OpenYap publish a downloadable macOS 26 binary from GitHub while the project has no Apple signing identity?

@@ -3,11 +3,12 @@ import SwiftUI
 @main
 struct OpenYapApp: App {
     @StateObject private var model = AppModel()
+    @StateObject private var updates = AppUpdateController()
     @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
         WindowGroup("OpenYap", id: "main") {
-            ContentView(model: model)
+            ContentView(model: model, updates: updates)
                 .openYapTheme(model.appTheme)
         }
         .defaultSize(width: 1_080, height: 720)
@@ -34,6 +35,10 @@ struct OpenYapApp: App {
             }
 
             Divider()
+            Button("Check for Updates...") {
+                updates.checkForUpdates()
+            }
+            .disabled(!updates.canCheckForUpdates)
             SettingsLink()
             Button("Quit OpenYap") {
                 NSApplication.shared.terminate(nil)
@@ -44,7 +49,12 @@ struct OpenYapApp: App {
         }
 
         Settings {
-            AppSettingsView(model: model, history: model.historyStore, statistics: model.statisticsStore)
+            AppSettingsView(
+                model: model,
+                history: model.historyStore,
+                statistics: model.statisticsStore,
+                updates: updates
+            )
                 .frame(width: 620, height: 560)
                 .openYapTheme(model.appTheme)
         }
