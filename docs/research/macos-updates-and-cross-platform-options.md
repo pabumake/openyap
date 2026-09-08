@@ -54,4 +54,4 @@ Keep the domain rules and transcript transformations in small platform-neutral S
 - Sparkle private key exported from the `dev.pabu.openyap` Keychain account and stored as a GitHub Actions secret.
 - GitHub Pages configured to deploy with GitHub Actions.
 
-The repository contains the build, signing, notarization, appcast, and Pages workflow. It cannot complete a signed release until these account-owned credentials exist.
+The repository contains the build, signing, notarization, appcast, and Pages workflows. A signed release requires these account-owned credentials in GitHub Actions.

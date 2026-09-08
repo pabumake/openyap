@@ -76,7 +76,7 @@ The release workflow expects these GitHub Actions secrets:
 
 Sparkle stored the private update key in the login Keychain under account `dev.pabu.openyap`. Export it with Sparkle's `generate_keys --account dev.pabu.openyap -x <private-key-file>` command, save that file in `SPARKLE_PRIVATE_KEY`, and remove the export after the secret is set. Keep a separate protected backup. The public key is safe to commit and is already in the generated app configuration.
 
-Configure GitHub Pages to use GitHub Actions before the first signed release. The workflow publishes `appcast.xml` at `https://pabumake.github.io/openyap/appcast.xml`. The workflow will stop if any signing, notarization, Sparkle signing, or Gatekeeper check fails.
+Configure GitHub Pages to use GitHub Actions before the first signed release. A `vMAJOR.MINOR.PATCH` tag starts the release workflow. After that workflow succeeds, a separate workflow on `main` publishes `appcast.xml` at `https://pabumake.github.io/openyap/appcast.xml`. The release stops if any signing, notarization, Sparkle signing, or Gatekeeper check fails.
 
 The development installer resets OpenYap's Microphone, Input Monitoring, and Accessibility grants so a newly signed build follows the permission flow again. Set `OPENYAP_KEEP_PERMISSIONS=1` when you need to rebuild without resetting them.
 
