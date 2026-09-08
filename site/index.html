@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'">
+  <meta name="theme-color" content="#eff1f5" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1e1e2e" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="OpenYap is a private, on-device dictation app for macOS.">
+  <meta property="og:title" content="OpenYap">
+  <meta property="og:description" content="Private, on-device dictation for macOS.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://pabumake.github.io/openyap/">
+  <meta property="og:image" content="https://pabumake.github.io/openyap/assets/logo-dark.png">
+  <title>OpenYap | Private dictation for macOS</title>
+  <link rel="icon" href="assets/icon-256.png" sizes="256x256" type="image/png">
+  <link rel="apple-touch-icon" href="assets/icon-256.png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="OpenYap home">
+      <picture>
+        <source srcset="assets/logo-dark.png" media="(prefers-color-scheme: dark)">
+        <img src="assets/logo-light.png" width="1254" height="1254" alt="">
+      </picture>
+      <span>OpenYap</span>
+    </a>
+    <a class="header-link" href="https://github.com/pabumake/openyap">GitHub</a>
+  </header>
+
+  <main id="main-content">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Private macOS dictation</p>
+        <h1 id="hero-title">Speak naturally.<br>Your Mac does the rest.</h1>
+        <p class="lede">
+          OpenYap turns speech into polished text with Apple on-device models.
+          Your audio and transcripts stay on your Mac.
+        </p>
+
+        <div class="requirements" aria-label="System and release details">
+          <span>macOS 26</span>
+          <span>Apple silicon</span>
+          <span class="verified"><i aria-hidden="true"></i>Signed and notarized</span>
+        </div>
+
+        <div class="actions">
+          <a
+            class="button button-primary"
+            id="download-link"
+            href="https://github.com/pabumake/openyap/releases"
+          >View releases</a>
+          <a
+            class="button button-secondary"
+            id="release-link"
+            href="https://github.com/pabumake/openyap/releases"
+          >Release notes</a>
+        </div>
+        <p class="release-status" id="release-status" aria-live="polite">Checking the current release...</p>
+      </div>
+
+      <div class="hero-art" aria-hidden="true">
+        <div class="logo-glow"></div>
+        <picture>
+          <source srcset="assets/logo-dark.png" media="(prefers-color-scheme: dark)">
+          <img src="assets/logo-light.png" width="1254" height="1254" alt="">
+        </picture>
+      </div>
+    </section>
+
+    <section class="feature-grid" aria-label="OpenYap features">
+      <article class="card">
+        <span class="card-number">01</span>
+        <h2>On-device by design</h2>
+        <p>Apple SpeechAnalyzer handles transcription. Foundation Models can clean the result without a cloud service.</p>
+      </article>
+      <article class="card">
+        <span class="card-number">02</span>
+        <h2>Ready where you type</h2>
+        <p>Use a global shortcut, choose your microphone, and paste into the app that was active when you started.</p>
+      </article>
+    </section>
+
+    <section class="install-card" aria-labelledby="install-title">
+      <div>
+        <p class="eyebrow">Get started</p>
+        <h2 id="install-title">Install OpenYap</h2>
+        <p class="install-intro">The app needs macOS 26 and an Apple silicon Mac.</p>
+      </div>
+      <ol>
+        <li><span>1</span><p>Download and open the ZIP file.</p></li>
+        <li><span>2</span><p>Move <strong>OpenYap.app</strong> to the Applications folder.</p></li>
+        <li><span>3</span><p>Open OpenYap and grant Microphone and Input Monitoring access.</p></li>
+      </ol>
+      <p class="permission-note">Grant Accessibility access if you want OpenYap to paste text into other apps.</p>
+    </section>
+
+    <section class="privacy" aria-labelledby="privacy-title">
+      <div class="privacy-mark" aria-hidden="true"></div>
+      <div>
+        <h2 id="privacy-title">Your voice stays yours.</h2>
+        <p>OpenYap does not retain microphone audio. Transcript history, vocabulary, snippets, and statistics stay local.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>OpenYap is open-source software under the MIT License.</p>
+    <nav aria-label="Project links">
+      <a href="https://github.com/pabumake/openyap/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/pabumake/openyap/blob/main/LICENSE">License</a>
+      <a href="https://github.com/pabumake/openyap/blob/main/SECURITY.md">Security</a>
+    </nav>
+  </footer>
+</body>
+</html>

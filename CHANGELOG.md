@@ -4,6 +4,10 @@ OpenYap follows semantic versioning. GitHub publishes this file from the `main` 
 
 ## Unreleased
 
+### Added
+
+- A GitHub Pages download page with current release details and installation instructions.
+
 ## 0.2.0 - 2026-09-08
 
 ### Added

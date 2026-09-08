@@ -35,7 +35,7 @@ Or build, install, sign, and launch the app in one command:
 
 The `v0.2.0` GitHub prerelease provides `OpenYap-0.2.0-macOS-arm64.zip` and a SHA-256 checksum. This build requires macOS 26 on Apple silicon.
 
-The app is signed with Developer ID and notarized by Apple. Download it from the official [OpenYap releases](https://github.com/pabumake/openyap/releases), verify the checksum, extract it, and move `OpenYap.app` to `/Applications`.
+The app is signed with Developer ID and notarized by Apple. Download it from the [OpenYap website](https://pabumake.github.io/openyap/), verify the checksum, extract it, and move `OpenYap.app` to `/Applications`.
 
 To verify the downloaded ZIP and checksum in the same directory:
 

@@ -1,0 +1,475 @@
+:root {
+  color-scheme: light dark;
+  --base: #eff1f5;
+  --mantle: #e6e9ef;
+  --surface-0: #ccd0da;
+  --surface-1: #bcc0cc;
+  --text: #4c4f69;
+  --subtext: #5c5f77;
+  --accent: #8839ef;
+  --accent-copy: #7826d1;
+  --accent-text: #ffffff;
+  --green: #40a02b;
+  --shadow: rgba(76, 79, 105, 0.14);
+  --page-width: 1120px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --base: #1e1e2e;
+    --mantle: #181825;
+    --surface-0: #313244;
+    --surface-1: #45475a;
+    --text: #cdd6f4;
+    --subtext: #a6adc8;
+    --accent: #cba6f7;
+    --accent-copy: #cba6f7;
+    --accent-text: #1e1e2e;
+    --green: #a6e3a1;
+    --shadow: rgba(0, 0, 0, 0.32);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  background:
+    radial-gradient(circle at 82% 8%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 28rem),
+    radial-gradient(circle at 8% 52%, color-mix(in srgb, var(--green) 7%, transparent), transparent 30rem),
+    var(--base);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--accent-text);
+  transform: translateY(-160%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.site-header,
+main,
+footer {
+  width: min(calc(100% - 40px), var(--page-width));
+  margin-inline: auto;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 78px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.brand picture,
+.brand img {
+  display: block;
+  width: 34px;
+  height: 34px;
+}
+
+.brand img {
+  border-radius: 9px;
+}
+
+.header-link,
+footer a {
+  color: var(--subtext);
+  font-size: 14px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.header-link:hover,
+footer a:hover {
+  color: var(--accent-copy);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+  align-items: center;
+  min-height: 660px;
+  gap: clamp(38px, 7vw, 96px);
+  padding: 76px 0 94px;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: var(--accent-copy);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  max-width: 720px;
+  margin-bottom: 24px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+  font-size: clamp(47px, 6.5vw, 78px);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+
+.lede {
+  max-width: 630px;
+  margin-bottom: 26px;
+  color: var(--subtext);
+  font-size: clamp(18px, 2vw, 21px);
+  line-height: 1.55;
+}
+
+.requirements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 30px;
+}
+
+.requirements span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 1px solid var(--surface-1);
+  border-radius: 999px;
+  color: var(--subtext);
+  background: color-mix(in srgb, var(--mantle) 72%, transparent);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.requirements .verified {
+  color: var(--text);
+}
+
+.verified i {
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 14%, transparent);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 11px 19px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+}
+
+.button-primary {
+  background: var(--accent);
+  color: var(--accent-text);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.button-secondary {
+  border-color: var(--surface-1);
+  background: color-mix(in srgb, var(--mantle) 78%, transparent);
+  color: var(--text);
+}
+
+.button:focus-visible,
+.brand:focus-visible,
+.header-link:focus-visible,
+footer a:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 3px;
+}
+
+.release-status {
+  min-height: 21px;
+  margin: 12px 0 0;
+  color: var(--subtext);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-art {
+  position: relative;
+  isolation: isolate;
+}
+
+.hero-art picture,
+.hero-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hero-art img {
+  position: relative;
+  z-index: 1;
+  border-radius: 25%;
+  box-shadow: 0 34px 68px var(--shadow);
+}
+
+.logo-glow {
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  background: var(--accent);
+  filter: blur(70px);
+  opacity: 0.28;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  padding-bottom: 22px;
+}
+
+.card,
+.install-card,
+.privacy {
+  border: 1px solid color-mix(in srgb, var(--surface-1) 72%, transparent);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--mantle) 84%, transparent);
+  box-shadow: 0 16px 38px color-mix(in srgb, var(--shadow) 55%, transparent);
+}
+
+.card {
+  padding: clamp(24px, 4vw, 38px);
+}
+
+.card-number {
+  display: block;
+  margin-bottom: 38px;
+  color: var(--accent-copy);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 12px;
+}
+
+.card h2,
+.install-card h2,
+.privacy h2 {
+  margin-bottom: 10px;
+  font-size: clamp(23px, 3vw, 30px);
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+}
+
+.card p,
+.install-intro,
+.privacy p {
+  margin-bottom: 0;
+  color: var(--subtext);
+  font-size: 16px;
+}
+
+.install-card {
+  display: grid;
+  grid-template-columns: 0.75fr 1.25fr;
+  gap: clamp(34px, 7vw, 90px);
+  margin-top: 18px;
+  padding: clamp(28px, 5vw, 52px);
+}
+
+.install-card ol {
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.install-card li {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.install-card li span {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--surface-0);
+  color: var(--accent-copy);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.install-card li p {
+  margin: 0;
+}
+
+.permission-note {
+  grid-column: 2;
+  margin: -2px 0 0 44px;
+  color: var(--subtext);
+  font-size: 13px;
+}
+
+.privacy {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 40px;
+  padding: clamp(24px, 5vw, 42px);
+}
+
+.privacy-mark {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 52px;
+  border-radius: 999px;
+  background: linear-gradient(var(--accent), var(--green));
+  box-shadow: 0 0 26px color-mix(in srgb, var(--accent) 32%, transparent);
+}
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 64px 0 38px;
+  color: var(--subtext);
+  font-size: 13px;
+}
+
+footer p {
+  margin: 0;
+}
+
+footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+@media (max-width: 760px) {
+  .site-header,
+  main,
+  footer {
+    width: min(calc(100% - 28px), var(--page-width));
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding: 58px 0 76px;
+  }
+
+  .hero-art {
+    width: min(78vw, 440px);
+    margin: 4px auto 0;
+  }
+
+  .feature-grid,
+  .install-card {
+    grid-template-columns: 1fr;
+  }
+
+  .permission-note {
+    grid-column: 1;
+    margin-left: 44px;
+  }
+
+  footer {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 430px) {
+  .site-header {
+    min-height: 68px;
+  }
+
+  .hero {
+    padding-top: 42px;
+  }
+
+  h1 {
+    font-size: 44px;
+  }
+
+  .actions {
+    display: grid;
+  }
+
+  .button {
+    width: 100%;
+  }
+
+  .privacy {
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .button {
+    transition: none;
+  }
+}

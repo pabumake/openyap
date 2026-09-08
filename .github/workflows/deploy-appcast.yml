@@ -31,6 +31,11 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Check out site source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
       - name: Resolve release workflow run
         id: source
         env:
@@ -60,6 +65,17 @@ jobs:
 
       - name: Validate appcast artifact
         run: test -s "$RUNNER_TEMP/pages/appcast.xml"
+
+      - name: Add download page
+        run: |
+          set -euo pipefail
+          cp -R site/. "$RUNNER_TEMP/pages/"
+          mkdir -p "$RUNNER_TEMP/pages/assets"
+          cp OpenYap/Assets.xcassets/OpenYapLogo.imageset/logo-light.png "$RUNNER_TEMP/pages/assets/"
+          cp OpenYap/Assets.xcassets/OpenYapLogo.imageset/logo-dark.png "$RUNNER_TEMP/pages/assets/"
+          cp OpenYap/Assets.xcassets/AppIcon.appiconset/icon-256.png "$RUNNER_TEMP/pages/assets/"
+          test -s "$RUNNER_TEMP/pages/index.html"
+          test -s "$RUNNER_TEMP/pages/appcast.xml"
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6
