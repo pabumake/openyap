@@ -42,6 +42,8 @@ release_version=${release_tag#v}
 temporary_directory=$(mktemp -d /private/tmp/openyap-release.XXXXXX)
 source_directory=$temporary_directory/source
 archive_path=$temporary_directory/OpenYap.xcarchive
+export_path=$temporary_directory/export
+export_options_path=$temporary_directory/ExportOptions.plist
 derived_data_path=$temporary_directory/DerivedData
 staging_directory=$temporary_directory/staging
 extraction_directory=$temporary_directory/extracted
@@ -94,7 +96,32 @@ DEVELOPER_DIR="$developer_directory" xcodebuild archive -quiet \
   ARCHS=arm64 \
   ONLY_ACTIVE_ARCH=NO
 
-built_application=$archive_path/Products/Applications/OpenYap.app
+cat > "$export_options_path" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>destination</key>
+  <string>export</string>
+  <key>method</key>
+  <string>developer-id</string>
+  <key>signingCertificate</key>
+  <string>$developer_id_identity</string>
+  <key>signingStyle</key>
+  <string>manual</string>
+  <key>teamID</key>
+  <string>$OPENYAP_DEVELOPMENT_TEAM</string>
+</dict>
+</plist>
+PLIST
+
+print "Exporting OpenYap $release_version with Developer ID"
+DEVELOPER_DIR="$developer_directory" xcodebuild -exportArchive -quiet \
+  -archivePath "$archive_path" \
+  -exportPath "$export_path" \
+  -exportOptionsPlist "$export_options_path"
+
+built_application=$export_path/OpenYap.app
 staged_application=$staging_directory/OpenYap.app
 staged_info=$staged_application/Contents/Info.plist
 
@@ -124,6 +151,27 @@ update_interval=$(/usr/libexec/PlistBuddy -c 'Print :SUScheduledCheckInterval' "
 /usr/libexec/PlistBuddy -c 'Print :SUAllowsAutomaticUpdates' "$staged_info" | grep -Fq false || { print -u2 'Unattended update installation is enabled'; exit 72; }
 print -r -- "$signature_details" | grep -Fq 'Authority=Developer ID Application:' || { print -u2 'Release app is not Developer ID signed'; exit 73; }
 print -r -- "$signature_details" | grep -Fq "TeamIdentifier=$OPENYAP_DEVELOPMENT_TEAM" || { print -u2 'Release app has the wrong Team ID'; exit 74; }
+
+sparkle_framework=$staged_application/Contents/Frameworks/Sparkle.framework
+sparkle_version=$sparkle_framework/Versions/B
+sparkle_signed_items=(
+  "$sparkle_version/XPCServices/Downloader.xpc"
+  "$sparkle_version/XPCServices/Installer.xpc"
+  "$sparkle_version/Autoupdate"
+  "$sparkle_version/Updater.app"
+  "$sparkle_framework"
+)
+for signed_item in "${sparkle_signed_items[@]}"; do
+  signed_item_details=$(codesign -dvvv "$signed_item" 2>&1)
+  print -r -- "$signed_item_details" | grep -Fq 'Authority=Developer ID Application:' || {
+    print -u2 "Sparkle component is not Developer ID signed: $signed_item"
+    exit 75
+  }
+  print -r -- "$signed_item_details" | grep -Fq 'Timestamp=' || {
+    print -u2 "Sparkle component has no secure timestamp: $signed_item"
+    exit 75
+  }
+done
 [[ -f "$staged_application/Contents/Resources/CHANGELOG.md" ]] || { print -u2 'Bundled changelog is missing'; exit 75; }
 [[ -f "$staged_application/Contents/Resources/AppIcon.icns" ]] || { print -u2 'Bundled app icon is missing'; exit 76; }
 
