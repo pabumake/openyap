@@ -8,13 +8,13 @@ This file owns portfolio status and order. Linked Wayfinder maps own each effort
 
 ## Next
 
-### [App-specific formatting profiles](.scratch/app-specific-formatting-profiles/map.md)
+### [App-specific formatting profiles](https://github.com/pabumake/openyap/issues/1)
 
 Define a macOS-first product specification for destination-aware concise, neutral, and polished formatting. Keep the semantics reusable by later Apple clients.
 
 ## Later
 
-### [Native iOS capture and keyboard feasibility](.scratch/ios-capture-keyboard-feasibility/map.md)
+### [Native iOS capture and keyboard feasibility](https://github.com/pabumake/openyap/issues/2)
 
 Measure capture, background operation, containing-app and keyboard communication, and text delivery on the iPhone 15 Pro Max before planning the full iOS client.
 

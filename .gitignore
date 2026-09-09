@@ -26,3 +26,6 @@ OpenYap.xcodeproj/xcuserdata/
 *.mobileprovision
 *.p12
 *.pem
+
+# Local agent scratch data
+.scratch/

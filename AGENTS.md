@@ -4,7 +4,7 @@
 
 ### Issue tracker
 
-Issues live as versioned Markdown files under `.scratch/`. See `docs/agents/issue-tracker.md`.
+Issues live in [GitHub Issues](https://github.com/pabumake/openyap/issues). See `docs/agents/issue-tracker.md` before claiming or changing an issue.
 
 ### Triage labels
 
