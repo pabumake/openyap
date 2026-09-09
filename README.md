@@ -16,6 +16,10 @@ The sidebar shows the installed version. About contains the full build number an
 
 The checked-in Xcode project can be opened without running XcodeGen.
 
+## Planning
+
+Start with the [roadmap](ROADMAP.md) for portfolio order and links to active planning maps.
+
 ## Run locally
 
 Generate and open the Xcode project:

@@ -1,4 +1,4 @@
-# ADR 0003: Keep native Apple clients
+# ADR 0004: Keep native Apple clients
 
 Status: Accepted
 
@@ -13,6 +13,8 @@ Changing the desktop toolkit does not change Apple's signing rules. A Tauri Mac 
 ## Decision
 
 Keep macOS and iOS as native Swift applications. Add Sparkle to the Mac app for signed GitHub updates. Use one Apple Developer Program membership for Developer ID distribution and the later iOS release path.
+
+OpenYap accepts update metadata and archives only over HTTPS. An update is installable only after Sparkle verifies the signed appcast, release information, archive EdDSA signature, bundle signature, version, and system requirements. Public updater-enabled Mac builds use Developer ID signing and Apple notarization; a GitHub asset alone is not a trusted release. Scheduled checks do not send a system profile, and the user approves each download, installation, and relaunch.
 
 Keep durable domain rules separate from platform adapters. Do not start a shared Rust core until a Windows or Linux prototype proves that two supported clients need the same non-UI implementation.
 

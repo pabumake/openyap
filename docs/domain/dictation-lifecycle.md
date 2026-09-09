@@ -1,6 +1,6 @@
 # Dictation lifecycle
 
-This document tests the vocabulary in [CONTEXT.md](../../CONTEXT.md) against concrete behavior. It describes product rules, not platform APIs.
+This document defines product behavior using the vocabulary in [CONTEXT.md](../../CONTEXT.md). Architectural constraints remain in the linked ADRs.
 
 ## State model
 
@@ -19,7 +19,14 @@ formatting error -> awaiting delivery with raw transcript
 
 Awaiting-delivery sessions are dormant. A device may retain several of them, but only one session can capture, process, or attempt delivery at a time.
 
-## Command rules
+## Session rules
+
+- OpenYap assigns a unique session identifier at activation and carries it through every command, update, history entry, and delivery attempt.
+- A new activation does not discard or hide sessions awaiting delivery.
+- Every command or update applies only to its matching session identifier. A stale update cannot change another session.
+- Stop preserves useful speech and continues toward text preparation. Cancel discards captured speech and prevents delivery.
+- A cancelled or discarded session cannot resume or deliver late results.
+- A session fails only when it has neither deliverable text nor remaining work that can produce it.
 
 | Device condition | Start | Stop | Cancel | Retry delivery |
 | --- | --- | --- | --- | --- |
@@ -30,7 +37,46 @@ Awaiting-delivery sessions are dormant. A device may retain several of them, but
 | Finalizing or preparing text | Return the existing session for a duplicate activation; reject another activation | Ignore duplicate stop | Cancel remaining work | Reject |
 | Delivering | Return the existing session for a duplicate activation; reject another activation | Ignore | Do not interrupt an insertion already handed to the target | Ignore duplicate retry |
 
-A duplicate activation has the same session identifier or idempotency token. A different activation while a session is active is a conflict, even if it came from another control.
+A duplicate activation has the same session identifier or idempotency token. A different activation while a session is active is a conflict, even if another control sent it.
+
+## Audio input selection
+
+- OpenYap resolves automatic audio input when each capture starts.
+- Automatic selection prefers connected AirPods, then the built-in microphone, then the current system input or another available input.
+- A manual selection identifies a device by its stable identifier and remains selected while disconnected.
+- A disconnected manual input prevents capture and produces a visible warning. OpenYap does not silently replace an explicit choice.
+
+[ADR 0001](../adr/0001-on-device-processing-and-local-retention.md) owns the on-device processing boundary and the policy against retaining microphone audio.
+
+## Text preparation
+
+- Volatile segments never enter the raw transcript, history, or delivery text.
+- Final segments form the raw transcript in audio order.
+- OpenYap preserves the raw transcript as the source for recovery and an explicit formatting retry. Prepared text never replaces it.
+- Preparation applies optional smart formatting, then correction rules, then snippet expansion.
+- Smart formatting may remove clear filler and false starts, resolve explicit spoken corrections, and improve punctuation, capitalization, and layout. It must not add new meaning.
+- If smart formatting is unavailable or cannot produce a safe result, preparation continues from the raw transcript.
+- Correction rules match token boundaries and apply only when their lexicon scope matches the session's speech locale.
+- Snippets match spoken trigger phrases and insert their saved expansion without processing that expansion again.
+- OpenYap installs each starter-lexicon version once. Its entries then behave like user-owned custom terms and correction rules, so later installation does not restore an edit or deletion.
+- A useful partial result remains eligible for preparation and delivery and carries a partial marker.
+
+## History rules
+
+- A session that produces useful text creates a local history entry.
+- Manual edits change current text only. Revert restores current text from initial delivery text without rerunning preparation.
+- Changes to custom terms, correction rules, and snippets affect later preparations only. Existing history keeps the evidence needed to explain its prepared text.
+- Reducing history retention may delete entries immediately, so OpenYap asks for confirmation.
+
+[ADR 0003](../adr/0003-preserve-transcript-stages-in-local-history.md) owns the exact transcript snapshots, replacement evidence, and retention choices.
+
+## Delivery rules
+
+- OpenYap marks a session delivered only after an insertion target accepts its delivery text.
+- A rejected delivery attempt returns the session to awaiting delivery. It does not turn successful transcription into a failed session.
+- A recovery copy keeps useful text available without claiming insertion succeeded.
+- Retrying delivery reuses the selected session's prepared text. It does not capture audio, transcribe again, or rerun preparation unless the user explicitly requests a formatting retry.
+- OpenYap may start another session while earlier sessions await delivery, but it cannot overwrite, auto-deliver, or hide the earlier results.
 
 ## Scenarios
 

@@ -1,4 +1,4 @@
-# ADR 0002: Preserve transcript stages in local history
+# ADR 0003: Preserve transcript stages in local history
 
 Status: Accepted
 

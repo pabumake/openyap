@@ -1,21 +1,24 @@
 # OpenYap roadmap
 
+This file owns portfolio status and order. Linked Wayfinder maps own each effort's destination, detailed decisions, dependencies, and resolution history.
+
 ## Current release
 
-Version 0.1.0 covers the local macOS dictation loop, cleanup, word list, snippets, history, statistics, microphone selection, global shortcut, menu-bar operation, and themes.
-
-The next signed build adds structured Markdown release notes and daily Sparkle update checks from GitHub. The user approves each download, installation, and relaunch.
+[Version 0.2.0](CHANGELOG.md) is the current release. It includes the local macOS dictation workflow, signed and notarized distribution, structured release notes, and signed Sparkle updates.
 
 ## Next
 
-### App-specific formatting profiles
+### [App-specific formatting profiles](.scratch/app-specific-formatting-profiles/map.md)
 
-OpenYap already records the destination app for local statistics. The next feature should use that same app identity to select a formatting profile before text delivery.
-
-The first pass should support a default profile plus optional profiles for individual bundle identifiers. Each profile can choose concise, neutral, or polished cleanup while preserving word-list and snippet behavior. OpenYap must show the selected profile in history so a rewrite remains explainable.
+Define a macOS-first product specification for destination-aware concise, neutral, and polished formatting. Keep the semantics reusable by later Apple clients.
 
 ## Later
 
+### [Native iOS capture and keyboard feasibility](.scratch/ios-capture-keyboard-feasibility/map.md)
+
+Measure capture, background operation, containing-app and keyboard communication, and text delivery on the iPhone 15 Pro Max before planning the full iOS client.
+
+## Parked
+
 - Voice commands for editing selected text.
-- A native iOS capture app and keyboard delivery prototype.
 - Optional encrypted sync for word lists, snippets, and settings.
