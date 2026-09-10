@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenYap model catalog prototype</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d0e13;
+      --window: #181a22;
+      --sidebar: #20222b;
+      --raised: #242731;
+      --control: #2d303b;
+      --line: rgba(255, 255, 255, 0.10);
+      --line-strong: rgba(255, 255, 255, 0.18);
+      --text: #f5f3f0;
+      --muted: #a6a4aa;
+      --faint: #777781;
+      --accent: #ff9e59;
+      --accent-soft: rgba(255, 158, 89, 0.15);
+      --blue: #7eb8ff;
+      --blue-soft: rgba(126, 184, 255, 0.14);
+      --green: #69d39d;
+      --green-soft: rgba(105, 211, 157, 0.13);
+      --yellow: #f0c96b;
+      --yellow-soft: rgba(240, 201, 107, 0.13);
+      --red: #ff7d7d;
+      --red-soft: rgba(255, 125, 125, 0.13);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 920px;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 8%, rgba(255, 158, 89, 0.12), transparent 30rem),
+        radial-gradient(circle at 88% 85%, rgba(86, 125, 255, 0.10), transparent 32rem),
+        var(--bg);
+    }
+
+    button, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+
+    .prototype-note {
+      width: min(1260px, calc(100% - 40px));
+      margin: 18px auto 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .prototype-note strong { color: var(--accent); }
+
+    .window {
+      width: min(1260px, calc(100% - 40px));
+      min-height: 790px;
+      margin: 0 auto 100px;
+      overflow: hidden;
+      border: 1px solid var(--line-strong);
+      border-radius: 15px;
+      background: var(--window);
+      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.52);
+    }
+
+    .titlebar {
+      height: 50px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .traffic { display: flex; gap: 8px; }
+    .traffic i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+    .traffic i:nth-child(1) { background: #ff5f57; }
+    .traffic i:nth-child(2) { background: #febc2e; }
+    .traffic i:nth-child(3) { background: #28c840; }
+    .window-title { color: #d6d4d8; font-size: 13px; font-weight: 650; }
+
+    .shell { display: grid; grid-template-columns: 210px minmax(0, 1fr); min-height: 740px; }
+
+    .sidebar {
+      padding: 14px 10px;
+      border-right: 1px solid var(--line);
+      background: var(--sidebar);
+    }
+
+    .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 17px; }
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      background: linear-gradient(145deg, #ffb470, #ec7636);
+      color: #261207;
+      font-size: 17px;
+      font-weight: 900;
+      box-shadow: inset 0 1px rgba(255, 255, 255, 0.4);
+    }
+    .brand strong { font-size: 15px; }
+
+    .nav-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+      margin: 2px 0;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: #c7c5ca;
+      text-align: left;
+      font-size: 13px;
+    }
+    .nav-item.selected { background: rgba(255, 255, 255, 0.10); color: white; }
+    .nav-icon { width: 18px; color: var(--muted); text-align: center; }
+
+    .content { position: relative; min-width: 0; }
+    .content-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 30px 34px 20px;
+    }
+    h1 { margin: 0; font-size: 25px; letter-spacing: -0.025em; }
+    h2 { margin: 0; font-size: 16px; }
+    h3 { margin: 0; font-size: 14px; }
+    p { margin: 0; }
+    .subhead { margin-top: 7px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    .state-picker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 9px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.025);
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .state-picker select {
+      max-width: 165px;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font-weight: 650;
+    }
+
+    .page-body { padding: 0 34px 40px; }
+    .card { border: 1px solid var(--line); border-radius: 12px; background: rgba(255, 255, 255, 0.025); }
+    .section-card { margin-bottom: 16px; overflow: hidden; }
+    .section-title { padding: 11px 14px; color: var(--muted); font-size: 12px; font-weight: 650; }
+    .row { min-height: 54px; padding: 13px 15px; border-top: 1px solid var(--line); }
+    .row:first-child { border-top: 0; }
+    .row-line { display: flex; align-items: center; gap: 12px; }
+    .row-copy { min-width: 0; flex: 1; }
+    .row-copy strong { display: block; font-size: 13px; }
+    .row-copy small { display: block; margin-top: 4px; color: var(--muted); line-height: 1.35; }
+    .radio {
+      width: 17px;
+      height: 17px;
+      border: 1.5px solid #777984;
+      border-radius: 50%;
+      padding: 3px;
+    }
+    .radio.selected { border-color: var(--accent); background: var(--accent); box-shadow: inset 0 0 0 4px var(--window); }
+
+    .model-icon {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 18px;
+      font-weight: 800;
+    }
+    .model-icon.apple { background: var(--blue-soft); color: var(--blue); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 22px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+      color: #d8d6da;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .badge.good { background: var(--green-soft); color: var(--green); }
+    .badge.warn { background: var(--yellow-soft); color: var(--yellow); }
+    .badge.bad { background: var(--red-soft); color: var(--red); }
+    .badge.info { background: var(--blue-soft); color: var(--blue); }
+
+    .button {
+      min-height: 32px;
+      padding: 6px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--control);
+      font-size: 12px;
+      font-weight: 650;
+    }
+    .button:hover { background: #393d49; }
+    .button.primary { border-color: #ffad72; background: #e98140; color: #fff; }
+    .button.primary:hover { background: #f18e4a; }
+    .button.danger { color: #ffadad; }
+    .button:disabled { opacity: 0.42; cursor: not-allowed; }
+    .button.ghost { border-color: transparent; background: transparent; color: var(--blue); }
+
+    .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; margin-top: 14px; }
+    .fact small { display: block; margin-bottom: 4px; color: var(--faint); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .fact span { font-size: 12px; line-height: 1.4; }
+    .quiet-note { color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .separator { height: 1px; margin: 15px 0; background: var(--line); }
+
+    .progress { height: 7px; overflow: hidden; border-radius: 999px; background: rgba(255, 255, 255, 0.08); }
+    .progress > i { display: block; height: 100%; background: var(--accent); border-radius: inherit; }
+    .progress-copy { display: flex; justify-content: space-between; gap: 10px; margin-top: 7px; color: var(--muted); font-size: 11px; }
+
+    .notice { display: flex; gap: 10px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 9px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .notice.good { border-color: rgba(105, 211, 157, 0.28); background: var(--green-soft); color: #b8ebd0; }
+    .notice.warn { border-color: rgba(240, 201, 107, 0.28); background: var(--yellow-soft); color: #f2dca1; }
+    .notice.bad { border-color: rgba(255, 125, 125, 0.28); background: var(--red-soft); color: #ffc0c0; }
+
+    .variant-b-grid { display: grid; grid-template-columns: 220px minmax(0, 1fr) 220px; gap: 14px; min-height: 570px; }
+    .catalog-list, .inspector, .status-panel { padding: 12px; }
+    .catalog-list h2, .status-panel h2 { padding: 5px 5px 12px; }
+    .catalog-item { width: 100%; padding: 11px; margin-bottom: 7px; border: 1px solid transparent; border-radius: 9px; background: transparent; text-align: left; }
+    .catalog-item.selected { border-color: var(--line-strong); background: rgba(255, 255, 255, 0.055); }
+    .catalog-item strong { display: block; font-size: 12px; }
+    .catalog-item small { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
+    .inspector-head { display: flex; align-items: center; gap: 13px; padding: 7px 5px 18px; }
+    .inspector-copy { display: grid; gap: 14px; padding: 15px; }
+    .status-stack { display: grid; gap: 10px; }
+    .status-block { padding: 12px; border: 1px solid var(--line); border-radius: 9px; }
+    .status-block small { display: block; color: var(--muted); font-size: 10px; }
+    .status-block strong { display: block; margin-top: 5px; font-size: 12px; }
+
+    .choice-intro { max-width: 660px; margin-bottom: 18px; }
+    .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .choice { padding: 20px; }
+    .choice.recommended { border-color: rgba(126, 184, 255, 0.34); }
+    .choice.optional { border-color: rgba(255, 158, 89, 0.28); }
+    .choice-head { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+    .choice ul { min-height: 118px; margin: 14px 0 18px; padding-left: 18px; color: var(--muted); font-size: 12px; line-height: 1.65; }
+    .choice-actions { display: flex; gap: 8px; align-items: center; }
+    .steps { display: flex; align-items: center; gap: 8px; margin: 18px 0; }
+    .step { flex: 1; padding-top: 9px; border-top: 2px solid var(--line); color: var(--faint); font-size: 10px; }
+    .step.done { border-color: var(--green); color: var(--green); }
+    .step.current { border-color: var(--accent); color: var(--accent); }
+
+    .debug-state { margin-top: 17px; }
+    .debug-state summary { cursor: pointer; color: var(--muted); font-size: 11px; }
+    .debug-state pre { overflow: auto; max-height: 150px; padding: 10px; border-radius: 8px; background: #0e0f14; color: #bec5d3; font: 10px/1.5 "SFMono-Regular", monospace; }
+
+    .modal-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(0, 0, 0, 0.56); backdrop-filter: blur(5px); }
+    .modal { width: 430px; padding: 21px; border: 1px solid var(--line-strong); border-radius: 13px; background: #252731; box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65); }
+    .modal h2 { margin-bottom: 9px; }
+    .modal p { color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .modal-facts { display: grid; gap: 8px; margin: 16px 0; padding: 12px; border-radius: 9px; background: rgba(0, 0, 0, 0.16); font-size: 11px; }
+    .modal-facts div { display: flex; justify-content: space-between; gap: 20px; }
+    .modal-facts span { color: var(--muted); }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+    .switcher {
+      position: fixed;
+      z-index: 30;
+      left: 50%;
+      bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      transform: translateX(-50%);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      background: #07080b;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+    }
+    .switcher button { width: 34px; height: 30px; border: 0; border-radius: 999px; background: #20232b; }
+    .switcher strong { min-width: 190px; text-align: center; font-size: 11px; }
+
+    @media (max-width: 1050px) {
+      .variant-b-grid { grid-template-columns: 190px minmax(0, 1fr); }
+      .status-panel { grid-column: 1 / -1; }
+      .status-stack { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Three variants of model selection inside the existing Settings page, switchable via ?variant=. -->
+  <div class="prototype-note"><strong>Throwaway prototype.</strong> State resets on reload. Nothing downloads or changes your Mac.</div>
+  <main id="app"></main>
+  <nav class="switcher" aria-label="Prototype variant switcher">
+    <button id="previous-variant" aria-label="Previous variant">←</button>
+    <strong id="variant-label"></strong>
+    <button id="next-variant" aria-label="Next variant">→</button>
+  </nav>
+
+  <script>
+    const variants = [
+      { key: "A", name: "Inline settings" },
+      { key: "B", name: "Model library" },
+      { key: "C", name: "Guided choice" }
+    ];
+
+    const presets = {
+      "not-installed": { packageState: "not-installed", selectedEngine: "apple", progress: 0, compatible: true, activeSession: false, dialog: null },
+      downloading: { packageState: "downloading", selectedEngine: "apple", progress: 42, compatible: true, activeSession: false, dialog: null },
+      failed: { packageState: "failed", selectedEngine: "apple", progress: 0, compatible: true, activeSession: false, dialog: null },
+      installed: { packageState: "installed", selectedEngine: "apple", progress: 100, compatible: true, activeSession: false, dialog: null },
+      selected: { packageState: "installed", selectedEngine: "parakeet", progress: 100, compatible: true, activeSession: false, dialog: null },
+      corrupt: { packageState: "corrupt", selectedEngine: "apple", progress: 100, compatible: true, activeSession: false, dialog: null },
+      incompatible: { packageState: "not-installed", selectedEngine: "apple", progress: 0, compatible: false, activeSession: false, dialog: null },
+      "active-session": { packageState: "installed", selectedEngine: "apple", progress: 100, compatible: true, activeSession: true, dialog: null }
+    };
+
+    let state = { ...presets["not-installed"] };
+
+    function currentVariant() {
+      const requested = new URLSearchParams(location.search).get("variant")?.toUpperCase();
+      return variants.find(item => item.key === requested) || variants[0];
+    }
+
+    function setVariant(key) {
+      const url = new URL(location.href);
+      url.searchParams.set("variant", key);
+      history.replaceState(null, "", url);
+      render();
+    }
+
+    function cycleVariant(direction) {
+      const index = variants.findIndex(item => item.key === currentVariant().key);
+      const next = (index + direction + variants.length) % variants.length;
+      setVariant(variants[next].key);
+    }
+
+    function sidebar(active = "Settings") {
+      const items = [
+        ["◷", "History"], ["▥", "Statistics"], ["Aa", "Word List"],
+        ["✚", "Snippets"], ["⚙", "Settings"], ["ⓘ", "About"]
+      ];
+      return `<aside class="sidebar">
+        <div class="brand"><span class="brand-mark">Y</span><strong>OpenYap</strong></div>
+        ${items.map(([icon, label]) => `<button class="nav-item ${label === active ? "selected" : ""}"><span class="nav-icon">${icon}</span>${label}</button>`).join("")}
+      </aside>`;
+    }
+
+    function statePicker() {
+      const current = Object.entries(presets).find(([, value]) =>
+        value.packageState === state.packageState &&
+        value.selectedEngine === state.selectedEngine &&
+        value.compatible === state.compatible &&
+        value.activeSession === state.activeSession
+      )?.[0] || "custom";
+      return `<label class="state-picker">Prototype state
+        <select id="state-preset">
+          ${Object.keys(presets).map(key => `<option value="${key}" ${key === current ? "selected" : ""}>${key.replaceAll("-", " ")}</option>`).join("")}
+          ${current === "custom" ? `<option selected>custom</option>` : ""}
+        </select>
+      </label>`;
+    }
+
+    function chrome(body, title, subhead) {
+      return `<section class="window">
+        <div class="titlebar"><div class="traffic"><i></i><i></i><i></i></div><div class="window-title">OpenYap</div><div></div></div>
+        <div class="shell">${sidebar()}<section class="content">
+          <header class="content-head"><div><h1>${title}</h1><p class="subhead">${subhead}</p></div>${statePicker()}</header>
+          <div class="page-body">${body}${debugState()}</div>
+        </section></div>
+      </section>${modal()}`;
+    }
+
+    function debugState() {
+      return `<details class="debug-state"><summary>Full prototype state</summary><pre>${escapeHTML(JSON.stringify({ ...state, variant: currentVariant().key }, null, 2))}</pre></details>`;
+    }
+
+    function packageBadge() {
+      switch (state.packageState) {
+        case "downloading": return `<span class="badge info">Downloading ${state.progress}%</span>`;
+        case "failed": return `<span class="badge bad">Download failed</span>`;
+        case "installed": return state.selectedEngine === "parakeet" ? `<span class="badge good">Selected</span>` : `<span class="badge good">Installed</span>`;
+        case "corrupt": return `<span class="badge bad">Needs repair</span>`;
+        default: return state.compatible ? `<span class="badge">Optional download</span>` : `<span class="badge warn">Not compatible</span>`;
+      }
+    }
+
+    function primaryAction(compact = false) {
+      if (!state.compatible) return `<button class="button" disabled>Unavailable on this Mac</button>`;
+      if (state.packageState === "downloading") return `<button class="button danger" data-action="cancel-download">Cancel download</button>`;
+      if (state.packageState === "failed") return `<button class="button primary" data-action="retry">Retry download</button>`;
+      if (state.packageState === "corrupt") return `<button class="button primary" data-action="repair">Download again</button>`;
+      if (state.packageState === "not-installed") return `<button class="button primary" data-action="open-download">${compact ? "Download" : "Download Parakeet"}</button>`;
+      if (state.selectedEngine === "parakeet") return `<button class="button" disabled>Selected</button>`;
+      return `<button class="button primary" data-action="select-parakeet" ${state.activeSession ? "disabled" : ""}>Use Parakeet</button>`;
+    }
+
+    function progressBlock() {
+      if (state.packageState !== "downloading") return "";
+      return `<div style="margin-top: 13px"><div class="progress"><i style="width:${state.progress}%"></i></div>
+        <div class="progress-copy"><span>Downloading verified model files</span><span>${state.progress}% of 603 MiB</span></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:9px"><button class="button" data-action="advance-download">Simulate next step</button></div></div>`;
+    }
+
+    function statusNotice() {
+      if (state.activeSession) return `<div class="notice warn">A dictation session is active. The session keeps Apple Speech. You can switch models after it ends.</div>`;
+      if (state.packageState === "failed") return `<div class="notice bad">The download stopped before verification. OpenYap kept the incomplete files separate and did not make the model selectable.</div>`;
+      if (state.packageState === "corrupt") return `<div class="notice bad">OpenYap found a file that no longer matches the signed catalog. Parakeet is unavailable until you download the verified package again.</div>`;
+      if (!state.compatible) return `<div class="notice warn">Parakeet needs an Apple-silicon Mac. Apple Speech remains available on this Mac.</div>`;
+      if (state.selectedEngine === "parakeet") return `<div class="notice good">New dictation sessions use Parakeet. Sessions already in progress keep the model they started with.</div>`;
+      return "";
+    }
+
+    function details() {
+      return `<div class="detail-grid">
+        <div class="fact"><small>Source</small><span>NVIDIA model, converted to Core ML by FluidInference</span></div>
+        <div class="fact"><small>License</small><span>Creative Commons Attribution 4.0</span></div>
+        <div class="fact"><small>Languages</small><span>25 European languages, including English and German</span></div>
+        <div class="fact"><small>Compatibility</small><span>Apple silicon · macOS 26 or later · tested hardware floor not set</span></div>
+        <div class="fact"><small>Download</small><span>603 MiB · verified before installation</span></div>
+        <div class="fact"><small>Transcription</small><span>Runs locally after capture stops</span></div>
+      </div>`;
+    }
+
+    function variantA() {
+      const body = `<section class="section-card">
+        <div class="section-title">Dictation</div>
+        <div class="card">
+          <div class="row"><div class="row-line"><div class="row-copy"><strong>Speech language</strong><small>English (US)</small></div><button class="button">English (US)⌄</button></div></div>
+          <div class="row"><div class="row-copy"><strong>Speech model</strong><small>Choose how OpenYap converts speech into a raw transcript.</small></div></div>
+          <div class="row"><div class="row-line"><span class="radio ${state.selectedEngine === "apple" ? "selected" : ""}"></span><span class="model-icon apple">A</span><div class="row-copy"><strong>Apple Speech</strong><small>Built into macOS · progressive text while you speak</small></div><span class="badge ${state.selectedEngine === "apple" ? "good" : ""}">${state.selectedEngine === "apple" ? "Selected" : "Ready"}</span><button class="button" data-action="select-apple" ${state.selectedEngine === "apple" || state.activeSession ? "disabled" : ""}>Use</button></div></div>
+          <div class="row"><div class="row-line"><span class="radio ${state.selectedEngine === "parakeet" ? "selected" : ""}"></span><span class="model-icon">P</span><div class="row-copy"><strong>Parakeet TDT 0.6B v3</strong><small>Optional OpenYap model · final text after capture stops</small></div>${packageBadge()}${primaryAction(true)}</div>
+            ${progressBlock()}<div class="separator"></div>${statusNotice()}${details()}
+            <p class="quiet-note" style="margin-top:14px">OpenYap downloads one approved model package. This is not a general Hugging Face model importer.</p>
+            ${state.packageState === "installed" ? `<div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="button danger" data-action="open-delete">Delete model…</button></div>` : ""}
+          </div>
+          <div class="row"><div class="row-line"><div class="row-copy"><strong>Microphone</strong><small>Automatic prefers connected AirPods, then the built-in microphone.</small></div><button class="button">Automatic⌄</button></div></div>
+          <div class="row"><div class="row-line"><div class="row-copy"><strong>Smart formatting with the local language model</strong></div><span class="badge good">On</span></div></div>
+        </div>
+      </section>`;
+      return chrome(body, "Settings", "The model choice sits beside the existing dictation settings.");
+    }
+
+    function variantB() {
+      const body = `<div class="variant-b-grid">
+        <aside class="card catalog-list"><h2>Speech models</h2>
+          <button class="catalog-item"><strong>Apple Speech</strong><small>${state.selectedEngine === "apple" ? "Selected" : "Ready"} · macOS</small></button>
+          <button class="catalog-item selected"><strong>Parakeet TDT</strong><small>${labelForState()} · 603 MiB</small></button>
+          <div class="notice" style="margin-top:18px">Only models tested and signed into OpenYap's catalog appear here.</div>
+        </aside>
+        <section class="card inspector">
+          <div class="inspector-head"><span class="model-icon">P</span><div class="row-copy"><h2>Parakeet TDT 0.6B v3</h2><small>Curated local speech model</small></div>${packageBadge()}</div>
+          ${statusNotice()}
+          <div class="inspector-copy">
+            <div><h3>What changes</h3><p class="subhead">OpenYap waits until capture stops, then produces the raw transcript locally. Smart formatting, your word list, snippets, history, and delivery work the same way.</p></div>
+            ${details()}
+            <div><h3>Trust and storage</h3><p class="subhead">OpenYap fetches an exact approved revision, checks every file, and installs it only after the package is complete. Audio is not retained.</p></div>
+            ${progressBlock()}
+          </div>
+        </section>
+        <aside class="card status-panel"><h2>On this Mac</h2><div class="status-stack">
+          <div class="status-block"><small>Compatibility</small><strong>${state.compatible ? "Compatible" : "Unavailable"}</strong></div>
+          <div class="status-block"><small>Package</small><strong>${labelForState()}</strong></div>
+          <div class="status-block"><small>New sessions</small><strong>${state.selectedEngine === "parakeet" ? "Parakeet" : "Apple Speech"}</strong></div>
+          ${primaryAction()}
+          ${state.packageState === "installed" ? `<button class="button danger" data-action="open-delete">Delete package…</button>` : ""}
+        </div></aside>
+      </div>`;
+      return chrome(body, "Model library", "A dedicated library gives package state, provenance, and recovery equal weight.");
+    }
+
+    function variantC() {
+      const body = `<div class="choice-intro"><h2>Choose what listens</h2><p class="subhead">Both choices keep speech on this Mac. Apple Speech works immediately. Parakeet is a larger optional model for people who want to compare local recognition.</p></div>
+        ${statusNotice()}
+        <div class="steps">
+          <div class="step done">1 · Choose</div>
+          <div class="step ${state.packageState === "downloading" ? "current" : ["installed", "corrupt"].includes(state.packageState) ? "done" : ""}">2 · Download and verify</div>
+          <div class="step ${state.packageState === "installed" && state.selectedEngine === "apple" ? "current" : state.selectedEngine === "parakeet" ? "done" : ""}">3 · Use for new sessions</div>
+        </div>
+        <div class="choice-grid">
+          <section class="card choice recommended"><div class="choice-head"><span class="model-icon apple">A</span><div><h2>Apple Speech</h2><p class="subhead">Recommended default</p></div></div>
+            <span class="badge ${state.selectedEngine === "apple" ? "good" : ""}">${state.selectedEngine === "apple" ? "Selected" : "Ready"}</span>
+            <ul><li>No OpenYap download</li><li>Shows progressive text during capture</li><li>Uses Apple's installed speech assets</li><li>Works with OpenYap's formatting and delivery</li></ul>
+            <div class="choice-actions"><button class="button" data-action="select-apple" ${state.selectedEngine === "apple" || state.activeSession ? "disabled" : ""}>Use Apple Speech</button></div>
+          </section>
+          <section class="card choice optional"><div class="choice-head"><span class="model-icon">P</span><div><h2>Parakeet TDT</h2><p class="subhead">Optional 603 MiB download</p></div></div>
+            ${packageBadge()}
+            <ul><li>Final text appears after capture stops</li><li>25 European languages, including English and German</li><li>Exact package checked before use</li><li>Source and CC BY 4.0 attribution included</li></ul>
+            <div class="choice-actions">${primaryAction()}<button class="button ghost" data-action="open-info">Review source and license</button></div>
+            ${progressBlock()}
+            ${state.packageState === "installed" ? `<div style="margin-top:10px"><button class="button danger" data-action="open-delete">Delete package…</button></div>` : ""}
+          </section>
+        </div>
+        <p class="quiet-note" style="margin-top:14px">Parakeet is one model approved by OpenYap. You cannot add arbitrary model repositories or executable plug-ins.</p>`;
+      return chrome(body, "Speech model", "A guided comparison keeps the default safe and makes the optional model a deliberate choice.");
+    }
+
+    function labelForState() {
+      return {
+        "not-installed": state.compatible ? "Not downloaded" : "Incompatible",
+        downloading: `Downloading ${state.progress}%`,
+        failed: "Download failed",
+        installed: "Verified and installed",
+        corrupt: "Corrupt package"
+      }[state.packageState];
+    }
+
+    function modal() {
+      if (state.dialog === "download") {
+        return `<div class="modal-backdrop"><section class="modal"><h2>Download Parakeet?</h2>
+          <p>OpenYap will download one approved Core ML model package. Dictation stays on this Mac after installation.</p>
+          <div class="modal-facts"><div><span>Download</span><strong>603 MiB</strong></div><div><span>Source</span><strong>FluidInference on Hugging Face</strong></div><div><span>License</span><strong>CC BY 4.0</strong></div><div><span>Runs with</span><strong>FluidAudio in OpenYap</strong></div></div>
+          <p>This does not enable arbitrary Hugging Face models.</p>
+          <div class="modal-actions"><button class="button" data-action="dismiss">Cancel</button><button class="button primary" data-action="confirm-download">Download and verify</button></div>
+        </section></div>`;
+      }
+      if (state.dialog === "delete") {
+        return `<div class="modal-backdrop"><section class="modal"><h2>Delete Parakeet from this Mac?</h2>
+          <p>This removes the 603 MiB model package. Your history stays. If Parakeet is selected, new sessions switch to Apple Speech.</p>
+          <div class="modal-actions"><button class="button" data-action="dismiss">Cancel</button><button class="button danger" data-action="confirm-delete">Delete model</button></div>
+        </section></div>`;
+      }
+      if (state.dialog === "info") {
+        return `<div class="modal-backdrop"><section class="modal"><h2>Source and license</h2>
+          <p>NVIDIA created Parakeet TDT 0.6B v3. FluidInference converted the approved revision to Core ML. OpenYap uses the package under Creative Commons Attribution 4.0 and records the exact model revision with each useful dictation session.</p>
+          <div class="modal-facts"><div><span>Model source</span><strong>NVIDIA</strong></div><div><span>Core ML conversion</span><strong>FluidInference</strong></div><div><span>Runtime</span><strong>FluidAudio</strong></div><div><span>License</span><strong>CC BY 4.0</strong></div></div>
+          <div class="modal-actions"><button class="button primary" data-action="dismiss">Done</button></div>
+        </section></div>`;
+      }
+      return "";
+    }
+
+    function reduce(action) {
+      switch (action) {
+        case "open-download": state.dialog = "download"; break;
+        case "confirm-download": state = { ...state, dialog: null, packageState: "downloading", progress: 12 }; break;
+        case "advance-download":
+          state = state.progress >= 76
+            ? { ...state, packageState: "installed", progress: 100 }
+            : { ...state, progress: state.progress < 42 ? 42 : 76 };
+          break;
+        case "cancel-download": state = { ...state, dialog: null, packageState: "not-installed", progress: 0 }; break;
+        case "retry":
+        case "repair": state = { ...state, packageState: "downloading", progress: 12 }; break;
+        case "select-parakeet": if (!state.activeSession && state.packageState === "installed") state.selectedEngine = "parakeet"; break;
+        case "select-apple": if (!state.activeSession) state.selectedEngine = "apple"; break;
+        case "open-delete": state.dialog = "delete"; break;
+        case "confirm-delete": state = { ...presets["not-installed"] }; break;
+        case "open-info": state.dialog = "info"; break;
+        case "dismiss": state.dialog = null; break;
+      }
+      render();
+    }
+
+    function render() {
+      const variant = currentVariant();
+      document.getElementById("variant-label").textContent = `${variant.key} · ${variant.name}`;
+      document.getElementById("app").innerHTML = variant.key === "A" ? variantA() : variant.key === "B" ? variantB() : variantC();
+
+      document.querySelectorAll("[data-action]").forEach(button => {
+        button.addEventListener("click", () => reduce(button.dataset.action));
+      });
+      document.getElementById("state-preset")?.addEventListener("change", event => {
+        if (presets[event.target.value]) state = { ...presets[event.target.value] };
+        render();
+      });
+    }
+
+    function escapeHTML(value) {
+      return value.replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
+    }
+
+    document.getElementById("previous-variant").addEventListener("click", () => cycleVariant(-1));
+    document.getElementById("next-variant").addEventListener("click", () => cycleVariant(1));
+    document.addEventListener("keydown", event => {
+      const tag = document.activeElement?.tagName;
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(tag) || document.activeElement?.isContentEditable) return;
+      if (event.key === "ArrowLeft") cycleVariant(-1);
+      if (event.key === "ArrowRight") cycleVariant(1);
+    });
+    addEventListener("popstate", render);
+    render();
+  </script>
+</body>
+</html>
