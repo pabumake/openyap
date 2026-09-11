@@ -50,8 +50,9 @@ Installing a new prototype build can leave an already-running keyboard extension
 
 1. Start a capture, then switch away from the OpenYap keyboard.
 2. Stop from the containing app or Live Activity after the keyboard heartbeat becomes stale.
-3. Confirm the app reports that it copied a recovery copy.
-4. Return to any text field and paste the captured result.
+3. Confirm the app reports that recovery text is available.
+4. Bring the containing app to the foreground and tap "Copy recovery text".
+5. Return to any text field and paste the captured result.
 
 ## Evidence to record
 
@@ -60,7 +61,7 @@ Installing a new prototype build can leave an already-running keyboard extension
 - Whether the Live Activity remains visible for the full capture.
 - Whether the keyboard receives matching snapshots and rejects a mismatched session identifier.
 - Whether insertion succeeds after returning to the host field.
-- Whether a stale keyboard heartbeat causes the containing app to create a recovery copy.
+- Whether a stale keyboard heartbeat preserves recovery text for a foreground copy action.
 
 ## Physical-device result
 
@@ -70,7 +71,7 @@ Measured on a development iPhone on 2026-09-11:
 - With Full Access active, the keyboard exchanged session-scoped commands and snapshots through the App Group.
 - A Stop command with a mismatched session identifier was rejected while capture continued.
 - A matching keyboard Stop moved the session to awaiting delivery, and the keyboard inserted the prepared text into a Notes field.
-- After the keyboard disappeared and its heartbeat became stale, Live Activity Stop ended capture, the containing app created a recovery copy, and that text could be pasted into Notes.
+- After the keyboard disappeared and its heartbeat became stale, Live Activity Stop ended capture and preserved recovery text. iOS rejected an automatic pasteboard write while the app was backgrounded, but a foreground copy action succeeded and the text could be pasted into Notes.
 - Live Activity creation, elapsed-time behavior, and Stop were functional after orphan cleanup and a system-driven timer were added. Its visual layout still needs simulator-based design work.
 
 The delivery path is technically viable through public iOS APIs. Treat the Live Activity layout as unfinished prototype UI, not as evidence against the containing-app and keyboard process split.

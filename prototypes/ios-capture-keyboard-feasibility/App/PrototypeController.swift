@@ -71,8 +71,13 @@ final class PrototypeController: ObservableObject {
     func copyRecoveryText() {
         guard let text = snapshot.deliveryText else { return }
         UIPasteboard.general.string = text
-        snapshot.recoveryCopyWasCreated = true
-        updateSnapshot(event: "Recovery copy created from containing app")
+        if UIPasteboard.general.string == text {
+            snapshot.recoveryCopyWasCreated = true
+            updateSnapshot(event: "Recovery copy created from foreground containing app")
+        } else {
+            snapshot.recoveryCopyWasCreated = false
+            updateSnapshot(event: "Recovery copy failed; delivery text remains available in the app")
+        }
     }
 
     func resetPrototype() {
@@ -262,10 +267,9 @@ final class PrototypeController: ObservableObject {
         await endLiveActivity(finalState: "awaiting delivery")
 
         refreshKeyboardPresence()
-        if !keyboardHeartbeatIsFresh, let deliveryText = snapshot.deliveryText {
-            UIPasteboard.general.string = deliveryText
-            snapshot.recoveryCopyWasCreated = true
-            updateSnapshot(event: "Keyboard was absent; containing app created a recovery copy")
+        if !keyboardHeartbeatIsFresh {
+            snapshot.recoveryCopyWasCreated = false
+            updateSnapshot(event: "Keyboard was absent; recovery text is available in the containing app")
         } else {
             updateSnapshot(event: "Delivery text is awaiting the active keyboard")
         }
