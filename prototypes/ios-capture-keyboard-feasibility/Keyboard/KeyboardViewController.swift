@@ -89,7 +89,7 @@ final class KeyboardViewController: UIInputViewController {
     @objc private func startCapture() {
         let sessionID = UUID()
         requestedSessionID = sessionID
-        send(action: .start, sessionID: sessionID, source: "Keyboard")
+        guard send(action: .start, sessionID: sessionID, source: "Keyboard") else { return }
 
         guard let url = URL(string: "openyap-prototype://capture?session=\(sessionID.uuidString)") else {
             statusLabel.text = "Could not create the containing-app URL."
@@ -110,7 +110,8 @@ final class KeyboardViewController: UIInputViewController {
             statusLabel.text = "No matching session is visible."
             return
         }
-        send(action: .stop, sessionID: sessionID, source: "Keyboard")
+        guard send(action: .stop, sessionID: sessionID, source: "Keyboard") else { return }
+        statusLabel.text = "Verified the matching Stop command in the keyboard container."
     }
 
     @objc private func insertDeliveryText() {
@@ -121,32 +122,43 @@ final class KeyboardViewController: UIInputViewController {
             return
         }
         textDocumentProxy.insertText(text)
-        send(action: .markDelivered, sessionID: snapshot.sessionID!, source: "Keyboard")
-        statusLabel.text = "Insertion requested for the host text field."
+        if send(action: .markDelivered, sessionID: snapshot.sessionID!, source: "Keyboard") {
+            statusLabel.text = "Insertion requested; delivery command verified in the keyboard container."
+        }
     }
 
     @objc private func sendStaleStop() {
-        send(action: .stop, sessionID: UUID(), source: "Keyboard stale-command check")
-        statusLabel.text = "Sent a Stop command with a mismatched session identifier."
+        guard send(
+            action: .stop,
+            sessionID: UUID(),
+            source: "Keyboard stale-command check"
+        ) else { return }
+        statusLabel.text = "Verified a mismatched Stop command in the keyboard container."
     }
 
     @objc private func nextKeyboard() {
         advanceToNextInputMode()
     }
 
-    private func send(action: PrototypeCommandAction, sessionID: UUID, source: String) {
+    @discardableResult
+    private func send(action: PrototypeCommandAction, sessionID: UUID, source: String) -> Bool {
+        let command = PrototypeCommand(
+            commandID: UUID(),
+            sessionID: sessionID,
+            action: action,
+            requestedAt: Date(),
+            source: source
+        )
         do {
-            try PrototypeBridge.writeCommand(
-                PrototypeCommand(
-                    commandID: UUID(),
-                    sessionID: sessionID,
-                    action: action,
-                    requestedAt: Date(),
-                    source: source
-                )
-            )
+            try PrototypeBridge.writeCommand(command)
+            guard try PrototypeBridge.readCommand()?.commandID == command.commandID else {
+                statusLabel.text = "Command write completed, but immediate readback did not match."
+                return false
+            }
+            return true
         } catch {
             statusLabel.text = "Command write failed: \(error)"
+            return false
         }
     }
 
@@ -155,6 +167,7 @@ final class KeyboardViewController: UIInputViewController {
             currentSnapshot = try PrototypeBridge.readSnapshot()
             let snapshot = currentSnapshot ?? .idle
             stateLabel.text = [
+                "full access: \(hasFullAccess)",
                 "session: \(snapshot.sessionID?.uuidString ?? "none")",
                 "state: \(snapshot.state.rawValue)",
                 String(format: "elapsed: %.1fs", snapshot.elapsedSeconds),

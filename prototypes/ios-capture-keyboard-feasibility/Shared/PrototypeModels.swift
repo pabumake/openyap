@@ -68,6 +68,7 @@ struct PrototypeActivityAttributes: ActivityAttributes {
     struct ContentState: Codable, Hashable {
         var state: String
         var elapsedSeconds: Int
+        var startedAt: Date?
     }
 
     let sessionID: String

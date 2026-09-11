@@ -16,14 +16,25 @@ final class PrototypeController: ObservableObject {
     private var lastHandledCommandID: UUID?
     private var activity: Activity<PrototypeActivityAttributes>?
     private var lastPeriodicWrite = Date.distantPast
+    private var lastCaptureDrivenPoll = Date.distantPast
 
     init() {
         if let saved = try? PrototypeBridge.readSnapshot() {
             snapshot = saved
+            if [.preparing, .capturing, .finalizing].contains(saved.state) {
+                snapshot.state = .failed
+                snapshot.liveActivityIsActive = false
+                snapshot.lastEvent = "Recovered an interrupted active session after relaunch"
+                snapshot.updatedAt = Date()
+                try? PrototypeBridge.writeSnapshot(snapshot)
+            }
         } else {
             snapshot = .idle
         }
         log("Containing app initialized")
+        Task {
+            await dismissAllLiveActivities(finalState: "discarded after relaunch")
+        }
     }
 
     func startPolling() {
@@ -73,7 +84,11 @@ final class PrototypeController: ObservableObject {
         lastHandledCommandID = nil
         snapshot = .idle
         eventLog.removeAll()
+        snapshot.liveActivityIsActive = false
         updateSnapshot(event: "Prototype state reset")
+        Task {
+            await dismissAllLiveActivities(finalState: "reset")
+        }
     }
 
     func handleOpenURL(_ url: URL) {
@@ -276,6 +291,10 @@ final class PrototypeController: ObservableObject {
     private func recordAudioBuffer() {
         guard snapshot.state == .capturing else { return }
         snapshot.audioBufferCount += 1
+        if Date().timeIntervalSince(lastCaptureDrivenPoll) >= 0.25 {
+            lastCaptureDrivenPoll = Date()
+            pollBridge()
+        }
     }
 
     private func teardownAudio() {
@@ -290,6 +309,7 @@ final class PrototypeController: ObservableObject {
     }
 
     private func startLiveActivity(sessionID: UUID) async {
+        await dismissAllLiveActivities(finalState: "replaced by a new session")
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
             updateSnapshot(event: "Live Activities are disabled in device settings")
             return
@@ -299,7 +319,8 @@ final class PrototypeController: ObservableObject {
             let content = ActivityContent(
                 state: PrototypeActivityAttributes.ContentState(
                     state: snapshot.state.rawValue,
-                    elapsedSeconds: Int(snapshot.elapsedSeconds)
+                    elapsedSeconds: Int(snapshot.elapsedSeconds),
+                    startedAt: snapshot.captureStartedAt
                 ),
                 staleDate: nil
             )
@@ -316,7 +337,8 @@ final class PrototypeController: ObservableObject {
         let content = ActivityContent(
             state: PrototypeActivityAttributes.ContentState(
                 state: snapshot.state.rawValue,
-                elapsedSeconds: Int(snapshot.elapsedSeconds)
+                elapsedSeconds: Int(snapshot.elapsedSeconds),
+                startedAt: snapshot.captureStartedAt
             ),
             staleDate: nil
         )
@@ -324,16 +346,22 @@ final class PrototypeController: ObservableObject {
     }
 
     private func endLiveActivity(finalState: String) async {
-        guard let activity else { return }
+        await dismissAllLiveActivities(finalState: finalState)
+    }
+
+    private func dismissAllLiveActivities(finalState: String) async {
         let content = ActivityContent(
             state: PrototypeActivityAttributes.ContentState(
                 state: finalState,
-                elapsedSeconds: Int(snapshot.elapsedSeconds)
+                elapsedSeconds: Int(snapshot.elapsedSeconds),
+                startedAt: nil
             ),
             staleDate: nil
         )
-        await activity.end(content, dismissalPolicy: .after(Date().addingTimeInterval(30)))
-        self.activity = nil
+        for existingActivity in Activity<PrototypeActivityAttributes>.activities {
+            await existingActivity.end(content, dismissalPolicy: .immediate)
+        }
+        activity = nil
         snapshot.liveActivityIsActive = false
     }
 

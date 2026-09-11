@@ -22,8 +22,12 @@ The script discovers the first connected iPhone with Developer Mode enabled. It 
 
 1. Open Settings > General > Keyboard > Keyboards > Add New Keyboard.
 2. Add "OpenYap Prototype".
-3. Enable Full Access so the keyboard can reach the App Group container.
-4. Open Notes, Messages, Mail, or Safari and select the OpenYap keyboard.
+3. Enable Full Access so the keyboard can reach the App Group container. This is required for commands and snapshots; without it, iOS rejects App Group file writes with Cocoa error 513.
+4. Reload the keyboard extension after enabling Full Access. Switch to another keyboard and back to OpenYap Prototype. If the keyboard still shows `full access: false`, close the host app and reopen the keyboard.
+5. Confirm that the keyboard shows `full access: true` before starting a test.
+6. Open Notes, Messages, Mail, or Safari and select the OpenYap keyboard.
+
+Installing a new prototype build can leave an already-running keyboard extension with its previous access state. Repeat the reload check after each install, even when the Settings switch remains enabled.
 
 ## Guided checks
 
@@ -57,3 +61,16 @@ The script discovers the first connected iPhone with Developer Mode enabled. It 
 - Whether the keyboard receives matching snapshots and rejects a mismatched session identifier.
 - Whether insertion succeeds after returning to the host field.
 - Whether a stale keyboard heartbeat causes the containing app to create a recovery copy.
+
+## Physical-device result
+
+Measured on a development iPhone on 2026-09-11:
+
+- The containing app kept microphone capture alive for more than 30 seconds after moving to the background. Shared elapsed time and audio-buffer counts continued to advance.
+- With Full Access active, the keyboard exchanged session-scoped commands and snapshots through the App Group.
+- A Stop command with a mismatched session identifier was rejected while capture continued.
+- A matching keyboard Stop moved the session to awaiting delivery, and the keyboard inserted the prepared text into a Notes field.
+- After the keyboard disappeared and its heartbeat became stale, Live Activity Stop ended capture, the containing app created a recovery copy, and that text could be pasted into Notes.
+- Live Activity creation, elapsed-time behavior, and Stop were functional after orphan cleanup and a system-driven timer were added. Its visual layout still needs simulator-based design work.
+
+The delivery path is technically viable through public iOS APIs. Treat the Live Activity layout as unfinished prototype UI, not as evidence against the containing-app and keyboard process split.
