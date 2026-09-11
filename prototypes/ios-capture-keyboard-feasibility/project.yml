@@ -1,0 +1,105 @@
+name: OpenYapCapturePrototype
+options:
+  minimumXcodeGenVersion: 2.46.0
+  deploymentTarget:
+    iOS: "26.0"
+  xcodeVersion: "26.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "26.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: UR9WS3H647
+    REGISTER_APP_GROUPS: YES
+targets:
+  OpenYapCapturePrototype:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+      - path: Shared
+    info:
+      path: Generated/App-Info.plist
+      properties:
+        CFBundleDisplayName: OpenYap Capture Prototype
+        CFBundleURLTypes:
+          - CFBundleURLName: dev.pabu.openyap.prototype
+            CFBundleURLSchemes:
+              - openyap-prototype
+        NSMicrophoneUsageDescription: This prototype measures whether OpenYap can keep capture active while you return to another app.
+        NSSupportsLiveActivities: true
+        UIBackgroundModes:
+          - audio
+        UILaunchScreen: {}
+    entitlements:
+      path: Generated/App.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.dev.pabu.openyap
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.pabu.openyap.prototype.ios
+        PRODUCT_NAME: OpenYapCapturePrototype
+    dependencies:
+      - target: OpenYapPrototypeKeyboard
+        embed: true
+      - target: OpenYapPrototypeWidgets
+        embed: true
+    scheme:
+      gatherCoverageData: false
+  OpenYapPrototypeKeyboard:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Keyboard
+      - path: Shared/PrototypeModels.swift
+      - path: Shared/PrototypeBridge.swift
+    info:
+      path: Generated/Keyboard-Info.plist
+      properties:
+        CFBundleDisplayName: OpenYap Prototype
+        NSExtension:
+          NSExtensionAttributes:
+            IsASCIICapable: true
+            PrefersRightToLeft: false
+            PrimaryLanguage: en-US
+            RequestsOpenAccess: true
+          NSExtensionPointIdentifier: com.apple.keyboard-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).KeyboardViewController
+    entitlements:
+      path: Generated/Keyboard.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.dev.pabu.openyap
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.pabu.openyap.prototype.ios.keyboard
+        PRODUCT_NAME: OpenYapPrototypeKeyboard
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+  OpenYapPrototypeWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widgets
+      - path: Shared/PrototypeModels.swift
+      - path: Shared/PrototypeBridge.swift
+      - path: Shared/PrototypeIntents.swift
+    info:
+      path: Generated/Widgets-Info.plist
+      properties:
+        CFBundleDisplayName: OpenYap Prototype Controls
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Generated/Widgets.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.dev.pabu.openyap
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.pabu.openyap.prototype.ios.widgets
+        PRODUCT_NAME: OpenYapPrototypeWidgets
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
